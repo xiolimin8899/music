@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>音乐播放器</title>
+    <link rel="icon" href="/images/logo.webp" />
+    
+    <link rel="preload" href="/src/styles.css" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/src/styles.css" /></noscript>
+    <link rel="dns-prefetch" href="//raw.githubusercontent.com" />
+    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
+    <link rel="dns-prefetch" href="//api.github.com" />
+    <link rel="preconnect" href="https://api.github.com" crossorigin />
+    <link rel="dns-prefetch" href="//img.shields.io" />
+    <link rel="preconnect" href="https://img.shields.io" crossorigin />
+    <link rel="prefetch" href="/manifest.json" as="fetch" crossorigin>
+    <script defer src="https://umami.zxlwq.dpdns.org/script.js" data-website-id="b1156b40-ad17-46c8-894b-694538c14496"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('离线缓存已启用')
+          })
+          .catch(registrationError => {
+            console.warn('离线缓存启用失败: ', registrationError)
+          })
+        })
+      }
+    </script>
+  </body>
+  </html>
+
+
+
