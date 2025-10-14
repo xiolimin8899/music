@@ -83,19 +83,54 @@ export default function App() {
     }
   }, [query, filteredTracks.length])
 
-  if (loading) return null
+  if (loading) return (
+    <div className="container">
+      <div className="player" style={{ height: '200px', minHeight: '200px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          加载中...
+        </div>
+      </div>
+      <div className="search-bar" style={{ height: '44px', minHeight: '44px' }}>
+        <input className="search-input" placeholder="搜索音乐..." disabled />
+      </div>
+      <div className="virtual-playlist" style={{ height: '400px', minHeight: '400px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          正在加载播放列表...
+        </div>
+      </div>
+      <footer style={{ height: '40px', minHeight: '40px' }}>
+        <div style={{ textAlign: 'center' }}></div>
+      </footer>
+    </div>
+  )
   if (error) return <div className="container error">{error}</div>
   if (!tracks.length) return <div className="container">未发现音乐文件，请将音频放入 public/music</div>
 
   return (
     <div className="container">
-      <Suspense fallback={null}>
+      <Suspense fallback={
+        <div className="player" style={{ height: '200px', minHeight: '200px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            加载播放器...
+          </div>
+        </div>
+      }>
         <Player tracks={filteredTracks} currentIndex={currentIndex} onChangeIndex={setCurrentIndex} forcePlayKey={forcePlayKey} onOpenSettings={() => setSettingsOpen(true)} />
       </Suspense>
-      <Suspense fallback={null}>
+      <Suspense fallback={
+        <div className="search-bar" style={{ height: '44px', minHeight: '44px' }}>
+          <input className="search-input" placeholder="搜索音乐..." disabled />
+        </div>
+      }>
         <SearchBar value={query} onChange={setQuery} />
       </Suspense>
-      <Suspense fallback={null}>
+      <Suspense fallback={
+        <div className="virtual-playlist" style={{ height: '400px', minHeight: '400px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            加载播放列表...
+          </div>
+        </div>
+      }>
       <VPlaylist
         tracks={filteredTracks}
         currentIndex={currentIndex}
@@ -115,7 +150,7 @@ export default function App() {
         overscan={5}
       />
       </Suspense>
-      <Suspense fallback={null}>
+      <Suspense fallback={<div style={{ display: 'none' }}></div>}>
       <Password
         open={passwordOpen}
         title="删除歌曲"
@@ -135,7 +170,7 @@ export default function App() {
         }}
       />
       </Suspense>
-      <Suspense fallback={null}>
+      <Suspense fallback={<div style={{ display: 'none' }}></div>}>
       <Settings
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
@@ -313,7 +348,7 @@ export default function App() {
       />
       </Suspense>
       {progressOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<div style={{ display: 'none' }}></div>}>
           <div className="progress-dialog" style={{
             position: 'fixed',
             top: '50%',
