@@ -86,9 +86,11 @@ select.form-input:focus { border-color: #6b7280; }
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: 12px;
   max-height: 400px;
+  min-height: 200px;
   content-visibility: auto;
   contain-intrinsic-size: 600px 320px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+  contain: layout style;
 }
 
 /* 虚拟滚动容器样式 */
@@ -97,6 +99,8 @@ select.form-input:focus { border-color: #6b7280; }
   overflow-y: auto;
   overflow-x: hidden;
   height: 100%;
+  contain: layout style;
+  will-change: scroll-position;
 }
 
 /* 虚拟滚动容器的滚动条样式 */
@@ -121,8 +125,10 @@ select.form-input:focus { border-color: #6b7280; }
   gap: 8px;
   align-items: center;
   color: #ffffff;
-  height: 100%;
+  height: 45px;
+  min-height: 45px;
   box-sizing: border-box;
+  contain: layout style;
 }
 
 .playlist-item:hover {
@@ -352,6 +358,7 @@ body {
   max-width: 900px;
   margin: 0 auto;
   padding: 8px 24px 8px 24px;
+  contain: layout style;
 }
 
 h1 {
@@ -372,6 +379,7 @@ h1 {
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+  contain: layout style;
 }
 
 .player { position: relative; }
@@ -521,6 +529,10 @@ input[type="range"] { width: 200px; }
   background: rgba(21, 21, 24, .45);
   color: var(--fg);
   outline: none;
+  height: 44px;
+  min-height: 44px;
+  box-sizing: border-box;
+  contain: layout style;
 }
 .search-input:hover { border-color: rgba(255, 255, 255, .6); }
 .search-input::placeholder { color: var(--sub); }
@@ -568,9 +580,20 @@ footer a {
   font-family: inherit;
 }
 
-.player-card { padding: 20px 20px 16px; }
+.player-card { 
+  padding: 20px 20px 16px; 
+  min-height: 200px;
+  contain: layout style;
+}
 .top { display: grid; grid-template-columns: 140px 1fr auto; align-items: center; gap: 20px; }
-.art-lg { position: relative; width: 140px; height: 140px; }
+.art-lg { 
+  position: relative; 
+  width: 140px; 
+  height: 140px; 
+  min-width: 140px;
+  min-height: 140px;
+  contain: layout style;
+}
 .disc { 
   position: relative; 
   width: 100%; 
@@ -788,12 +811,27 @@ footer a {
   }
 
   /* 让徽章绝对贴底，并避免被遮挡 */
-  footer { position: fixed; left: 0; right: 0; bottom: 0; margin-top: 0; text-align: center; margin-bottom: 0; padding-bottom: 0; z-index: 50; }
+  footer { 
+    position: fixed; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    margin-top: 0; 
+    text-align: center; 
+    margin-bottom: 0; 
+    padding-bottom: 0; 
+    z-index: 50; 
+    contain: layout style;
+    will-change: transform;
+  }
   footer div { margin-top: 0; line-height: 0; }
   footer div a { display: inline-block; }
   footer div img { display: block; }
   /* 让虚拟播放列表容器直接贴到徽章，无间距 */
-  .container { padding-bottom: 0; }
+  .container { 
+    padding-bottom: 0; 
+    contain: layout style;
+  }
 }
 
 
