@@ -330,6 +330,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
                 try { localStorage.setItem('ui.fontFamily', v || '') } catch {}
                 applyAppearance({ ff: v, bg: null })
               }}
+              id="font-preset"
+              name="font-preset"
             >
               {FONT_PRESETS.map(p => (
                 <option key={p.label} value={p.value}>{p.label}</option>
