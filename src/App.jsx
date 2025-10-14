@@ -360,8 +360,23 @@ export default function App() {
           </div>
         </Suspense>
       )}
-      <footer style={{ marginBottom: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : '0.25rem', marginTop: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined, paddingBottom: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined }}>
-        <div style={{ textAlign: 'center', marginTop: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : '0.25rem', lineHeight: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined }}>
+      <footer style={{ 
+        marginBottom: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : '0.25rem', 
+        marginTop: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined, 
+        paddingBottom: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined,
+        minHeight: '40px',
+        contain: 'layout style'
+      }}>
+        <div style={{ 
+          textAlign: 'center', 
+          marginTop: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : '0.25rem', 
+          lineHeight: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          gap: '4px'
+        }}>
           {showBadges ? (
             (badgeCache || [
               { href: 'https://blog.wedp.dpdns.org/jpg/wx.webp', src: 'https://img.shields.io/badge/微信-zxlwq-07C160.svg?logo=wechat', alt: '微信' },
@@ -372,7 +387,7 @@ export default function App() {
               { href: 'https://www.youtube.com/@zxlwq', src: 'https://img.shields.io/badge/YouTube-zxlwq-FF0000.svg?logo=youtube&logoColor=FF0000', alt: 'YouTube' },
               { href: 'https://www.instagram.com/zxlwq', src: 'https://img.shields.io/badge/Instagram-zxlwq-E4405F.svg?logo=instagram&logoColor=E4405F', alt: 'Instagram' }
             ]).map((badge, index) => (
-              <a key={index} href={badge.href} target="_blank" rel="noopener noreferrer">
+              <a key={index} href={badge.href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block' }}>
                 <img 
                   loading="lazy" 
                   referrerPolicy="no-referrer" 
@@ -380,7 +395,10 @@ export default function App() {
                   alt={badge.alt}
                   style={{ 
                     transition: 'opacity 0.3s ease',
-                    opacity: badgeCache ? 1 : 0.7
+                    opacity: badgeCache ? 1 : 0.7,
+                    height: '20px',
+                    width: 'auto',
+                    display: 'block'
                   }}
                 />
               </a>
