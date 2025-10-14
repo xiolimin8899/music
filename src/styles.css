@@ -332,6 +332,23 @@ select.form-input:focus { border-color: #6b7280; }
   font-family: inherit;
 }
 
+/* 全局布局稳定性重置 */
+* {
+  contain: layout style;
+}
+
+/* 防止所有div的布局偏移 */
+div {
+  contain: layout style;
+  will-change: auto;
+}
+
+/* 确保所有容器都有稳定的尺寸 */
+.container > * {
+  contain: layout style;
+  will-change: auto;
+}
+
 input, textarea, select, button {
   font-family: inherit;
 }
@@ -372,6 +389,9 @@ body {
     "playlist"
     "footer";
   gap: 12px;
+  position: relative;
+  transform: translateZ(0);
+  will-change: auto;
 }
 
 h1 {
@@ -603,7 +623,9 @@ footer {
   align-items: center;
   justify-content: center;
   transform: translateZ(0);
-  will-change: transform;
+  will-change: auto;
+  position: relative;
+  overflow: hidden;
 }
 
 footer a {
