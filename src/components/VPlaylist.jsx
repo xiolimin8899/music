@@ -110,7 +110,14 @@ export default function VPlaylist({
         overscan={overscan}
         onScroll={handleScroll}
         className="virtual-scroll-container"
-        style={typeof window !== 'undefined' && window.innerWidth <= 480 ? { height: 'auto', maxHeight: 'calc(100vh - 330px)' } : undefined}
+        style={typeof window !== 'undefined' && window.innerWidth <= 480 ? { 
+          height: 'calc(100vh - 330px)', 
+          maxHeight: 'calc(100vh - 330px)',
+          minHeight: '200px'
+        } : {
+          height: containerHeight,
+          minHeight: '200px'
+        }}
       >
         {({ item, index, isVisible }) => (
           <VItem
