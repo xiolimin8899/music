@@ -359,6 +359,8 @@ body {
   margin: 0 auto;
   padding: 8px 24px 8px 24px;
   contain: layout style;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 h1 {
@@ -573,6 +575,7 @@ footer {
   margin-top: 12px;
   color: var(--sub);
   font-family: inherit;
+  contain: layout style;
 }
 
 footer a {
@@ -823,10 +826,21 @@ footer a {
     z-index: 50; 
     contain: layout style;
     will-change: transform;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  footer div { margin-top: 0; line-height: 0; }
-  footer div a { display: inline-block; }
-  footer div img { display: block; }
+  footer div { 
+    margin-top: 0; 
+    line-height: 0; 
+  }
+  footer div a { 
+    display: inline-block; 
+  }
+  footer div img { 
+    display: block; 
+  }
   /* 让虚拟播放列表容器直接贴到徽章，无间距 */
   .container { 
     padding-bottom: 0; 
