@@ -76,6 +76,234 @@ select.form-input:focus { border-color: #6b7280; }
   content-visibility: auto;
   contain-intrinsic-size: 600px 320px;
 }
+
+/* 虚拟播放列表容器样式 */
+.virtual-playlist {
+  position: relative;
+  background: rgba(21, 21, 24, .35);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 12px;
+  max-height: 400px;
+  content-visibility: auto;
+  contain-intrinsic-size: 600px 320px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+}
+
+/* 虚拟滚动容器样式 */
+.virtual-scroll-container {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+/* 虚拟滚动容器的滚动条样式 */
+.virtual-scroll-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.virtual-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.virtual-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,.25);
+  border-radius: 8px;
+}
+
+.playlist-item {
+  padding: 8px 40px;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  color: #ffffff;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.playlist-item:hover {
+  background: transparent;
+}
+
+.playlist-item.active {
+  background: transparent;
+  color: #ff8fb3;
+}
+
+.playlist-item-placeholder {
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 音频缓存样式 */
+.audio-cache-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(21, 21, 24, .8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--sub);
+  z-index: 1000;
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4f46e5;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.cache-status {
+  margin-bottom: 20px;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: rgba(255, 255, 255, .05);
+  border-radius: 6px;
+}
+
+.status-item .label {
+  font-size: 12px;
+  color: var(--sub);
+}
+
+.status-item .value {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-item .value.enabled {
+  color: #10b981;
+}
+
+.status-item .value.disabled {
+  color: #ef4444;
+}
+
+.status-item .value.loading {
+  color: #f59e0b;
+}
+
+.status-item .value.idle {
+  color: var(--sub);
+}
+
+.cache-usage {
+  margin-top: 15px;
+}
+
+.usage-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--sub);
+}
+
+.usage-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, .1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.usage-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.cache-settings {
+  margin-bottom: 20px;
+}
+
+.setting-item {
+  margin-bottom: 12px;
+}
+
+.setting-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--fg);
+}
+
+.setting-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.setting-item input[type="number"] {
+  width: 80px;
+  padding: 4px 8px;
+  border: 1px solid var(--muted);
+  border-radius: 4px;
+  background: rgba(21, 21, 24, .5);
+  color: var(--fg);
+  font-size: 12px;
+}
+
+.advanced-settings {
+  margin-bottom: 20px;
+}
+
+.advanced-content {
+  margin-top: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, .03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .1);
+}
+
+.cache-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.cache-actions button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cache-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .playlist-container { position: relative; }
 .playlist-container::-webkit-scrollbar { width: 10px; }
 .playlist-container::-webkit-scrollbar-track { background: transparent; }
@@ -123,7 +351,7 @@ body {
 .container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 8px 24px 8px 24px;
 }
 
 h1 {
@@ -482,7 +710,7 @@ footer a {
 
 
 @media (max-width: 480px) {
-  .container { max-width: 100%; padding: 12px; }
+  .container { max-width: 100%; padding: 12px 12px 0 12px; }
   .settings-btn { top: 8px; right: 8px; }
 
   .player { padding: 12px; }
@@ -513,6 +741,29 @@ footer a {
   .playlist .name { min-width: 0; padding-right: 28px; }
   .actions-inline { gap: 10px; margin-left: 6px; }
 
+  /* 移动端虚拟播放列表样式 */
+  .virtual-playlist { 
+    max-height: calc(100vh - 330px); 
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+  .virtual-scroll-container { 
+    max-height: calc(100vh - 330px); 
+  }
+  .playlist-item { 
+    grid-template-columns: 20px 1fr auto; 
+    padding: 10px 16px; 
+    gap: 10px; 
+  }
+  .playlist-item .name { 
+    min-width: 0; 
+    padding-right: 28px; 
+  }
+  .playlist-item .actions-inline { 
+    gap: 10px; 
+    margin-left: 6px; 
+  }
+
   .modal { width: 96vw; padding: 12px; }
   .modal-body { max-height: 70vh; margin-right: -12px; padding-right: 12px; }
   .modal-actions .btn-ghost { padding: 9px 14px; font-size: 13px; }
@@ -529,5 +780,20 @@ footer a {
   .form-label { font-size: 11px; }
   .form-input { font-size: 14px; }
 
-  footer { margin-top: 10px; text-align: center; }
+  /* 移动端定位按钮居中 */
+  .locate-fab {
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* 让徽章绝对贴底，并避免被遮挡 */
+  footer { position: fixed; left: 0; right: 0; bottom: 0; margin-top: 0; text-align: center; margin-bottom: 0; padding-bottom: 0; z-index: 50; }
+  footer div { margin-top: 0; line-height: 0; }
+  footer div a { display: inline-block; }
+  footer div img { display: block; }
+  /* 让虚拟播放列表容器直接贴到徽章，无间距 */
+  .container { padding-bottom: 0; }
 }
+
+
