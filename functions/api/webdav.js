@@ -1,8 +1,8 @@
 const AUDIO_EXTS = ['.mp3', '.flac', '.wav', '.aac', '.m4a', '.ogg', '.opus', '.webm']
 const isAudio = (name) => AUDIO_EXTS.some(ext => String(name || '').toLowerCase().endsWith(ext))
 
-function createProxyFetch(proxyUrl) {
-  if (!proxyUrl) return fetch
+function createProxyFetch(proxyUrl, builtinProxyUrl) {
+  if (!proxyUrl && !builtinProxyUrl) return fetch
   
   return async (url, options = {}) => {
     if (url.includes('api.github.com') || url.includes('raw.githubusercontent.com')) {
@@ -16,20 +16,48 @@ function createProxyFetch(proxyUrl) {
         console.log(`[webdav] Direct request error: ${error.message}, trying proxy...`)
       }
       
-      const targetUrl = encodeURIComponent(url)
-      const proxiedUrl = `${proxyUrl}?target=${targetUrl}`
-      
-      const proxyOptions = {
-        ...options,
-        headers: {
-          ...options.headers,
-          'X-Target-URL': url,
-          'X-Proxy-Type': 'github-webdav'
+      // 优先使用内置代理
+      if (builtinProxyUrl) {
+        try {
+          const targetUrl = encodeURIComponent(url)
+          const builtinProxiedUrl = `${builtinProxyUrl}?url=${targetUrl}`
+          
+          const builtinOptions = {
+            ...options,
+            headers: {
+              ...options.headers,
+              'X-Target-URL': url,
+              'X-Proxy-Type': 'github-webdav'
+            }
+          }
+          
+          console.log(`[webdav] Using builtin proxy: ${builtinProxiedUrl}`)
+          const builtinResponse = await fetch(builtinProxiedUrl, builtinOptions)
+          if (builtinResponse.ok) {
+            return builtinResponse
+          }
+        } catch (error) {
+          console.log(`[webdav] Builtin proxy failed: ${error.message}`)
         }
       }
       
-      console.log(`[webdav] Using proxy: ${proxiedUrl}`)
-      return fetch(proxiedUrl, proxyOptions)
+      // 回退到自定义代理
+      if (proxyUrl) {
+        const targetUrl = encodeURIComponent(url)
+        const proxiedUrl = `${proxyUrl}?target=${targetUrl}`
+        
+        const proxyOptions = {
+          ...options,
+          headers: {
+            ...options.headers,
+            'X-Target-URL': url,
+            'X-Proxy-Type': 'github-webdav'
+          }
+        }
+        
+        console.log(`[webdav] Using custom proxy: ${proxiedUrl}`)
+        return fetch(proxiedUrl, proxyOptions)
+      }
     }
     
     return fetch(url, options)
@@ -242,7 +270,8 @@ export const onRequestPost = async ({ request, env }) => {
     const wPass = env.WEBDAV_PASS
     
     const proxyUrl = env.GIT_URL
-    const proxyFetch = createProxyFetch(proxyUrl)
+    const builtinProxyUrl = '/api/audio'
+    const proxyFetch = createProxyFetch(proxyUrl, builtinProxyUrl)
 
     if (!repoFull || !token) {
       return new Response(JSON.stringify({ error: 'Server not configured: GIT_REPO/GIT_TOKEN missing' }), { status: 500, headers: { 'content-type': 'application/json' } })

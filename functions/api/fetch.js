@@ -23,13 +23,7 @@ export const onRequestPost = async ({ request, env }) => {
     if (body.action === 'customProxy') {
       const { url } = body
       const customProxyUrl = env.GIT_URL || ''
-      
-      if (!customProxyUrl) {
-        return new Response(JSON.stringify({ error: 'Custom proxy not configured' }), { 
-          status: 400, 
-          headers: { 'content-type': 'application/json' } 
-        })
-      }
+      const builtinProxyUrl = '/api/audio'
       
       if (!url || typeof url !== 'string') {
         return new Response(JSON.stringify({ error: 'Missing url' }), { 
@@ -45,9 +39,37 @@ export const onRequestPost = async ({ request, env }) => {
         })
       }
       
+      // 双重代理策略：优先内置代理，回退自定义代理
+      let proxyUrl = null
+      let proxyType = ''
+      
+      // 优先尝试内置代理
+      if (builtinProxyUrl) {
+        try {
+          proxyUrl = `${builtinProxyUrl}?url=${encodeURIComponent(url)}`
+          proxyType = 'builtin'
+          console.log('[api/fetch] Trying builtin proxy:', { proxyUrl })
+        } catch (error) {
+          console.log('[api/fetch] Builtin proxy setup failed:', error.message)
+        }
+      }
+      
+      // 如果没有内置代理或内置代理失败，使用自定义代理
+      if (!proxyUrl && customProxyUrl) {
+        proxyUrl = `${customProxyUrl}?url=${encodeURIComponent(url)}`
+        proxyType = 'custom'
+        console.log('[api/fetch] Using custom proxy:', { proxyUrl })
+      }
+      
+      if (!proxyUrl) {
+        return new Response(JSON.stringify({ error: 'No proxy configured' }), { 
+          status: 400, 
+          headers: { 'content-type': 'application/json' } 
+        })
+      }
+      
       try {
-        const proxyUrl = `${customProxyUrl}?url=${encodeURIComponent(url)}`
-        console.log('[api/fetch] Custom proxy request:', { proxyUrl })
+        console.log(`[api/fetch] ${proxyType} proxy request:`, { proxyUrl })
         const headers = {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
           'Accept': 'audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/aac,audio/m4a,audio/webm,audio/*,*/*;q=0.9',
@@ -64,9 +86,9 @@ export const onRequestPost = async ({ request, env }) => {
           signal: controller.signal
         })
         clearTimeout(timeoutId)
-        console.log('[api/fetch] Custom proxy upstream status:', upstream.status)
+        console.log(`[api/fetch] ${proxyType} proxy upstream status:`, upstream.status)
         if (!upstream.ok) {
-          return new Response(JSON.stringify({ error: `Custom proxy upstream ${upstream.status}` }), { 
+          return new Response(JSON.stringify({ error: `${proxyType} proxy upstream ${upstream.status}` }), { 
             status: upstream.status, 
             headers: { 'content-type': 'application/json' } 
           })
@@ -91,7 +113,7 @@ export const onRequestPost = async ({ request, env }) => {
         const base64 = await toBase64(arrayBuf)
         const mime = upstream.headers.get('content-type') || 'application/octet-stream'
         const resp = { base64, contentType: mime }
-        console.log('[api/fetch] Custom proxy success:', { bytes: arrayBuf.byteLength, contentType: mime })
+        console.log(`[api/fetch] ${proxyType} proxy success:`, { bytes: arrayBuf.byteLength, contentType: mime })
         return new Response(JSON.stringify(resp), {
           status: 200,
           headers: {
@@ -101,8 +123,8 @@ export const onRequestPost = async ({ request, env }) => {
           }
         })
       } catch (error) {
-        console.error('[api/fetch] Custom proxy error:', error)
-        return new Response(JSON.stringify({ error: `Custom proxy error: ${error.message}` }), { 
+        console.error(`[api/fetch] ${proxyType} proxy error:`, error)
+        return new Response(JSON.stringify({ error: `${proxyType} proxy error: ${error.message}` }), { 
           status: 500, 
           headers: { 'content-type': 'application/json' } 
         })

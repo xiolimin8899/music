@@ -16,8 +16,8 @@ function arrayBufferToBase64(buf) {
   }
 }
 
-function createProxyFetch(proxyUrl) {
-  if (!proxyUrl) return fetch
+function createProxyFetch(proxyUrl, builtinProxyUrl) {
+  if (!proxyUrl && !builtinProxyUrl) return fetch
   
   return async (url, options = {}) => {
     if (url.includes('api.github.com') || url.includes('raw.githubusercontent.com')) {
@@ -31,20 +31,48 @@ function createProxyFetch(proxyUrl) {
         console.log(`[upload] Direct request error: ${error.message}, trying proxy...`)
       }
       
-      const targetUrl = encodeURIComponent(url)
-      const proxiedUrl = `${proxyUrl}?target=${targetUrl}`
-      
-      const proxyOptions = {
-        ...options,
-        headers: {
-          ...options.headers,
-          'X-Target-URL': url,
-          'X-Proxy-Type': 'github-upload'
+      // 优先使用内置代理
+      if (builtinProxyUrl) {
+        try {
+          const targetUrl = encodeURIComponent(url)
+          const builtinProxiedUrl = `${builtinProxyUrl}?url=${targetUrl}`
+          
+          const builtinOptions = {
+            ...options,
+            headers: {
+              ...options.headers,
+              'X-Target-URL': url,
+              'X-Proxy-Type': 'github-upload'
+            }
+          }
+          
+          console.log(`[upload] Using builtin proxy: ${builtinProxiedUrl}`)
+          const builtinResponse = await fetch(builtinProxiedUrl, builtinOptions)
+          if (builtinResponse.ok) {
+            return builtinResponse
+          }
+        } catch (error) {
+          console.log(`[upload] Builtin proxy failed: ${error.message}`)
         }
       }
       
-      console.log(`[upload] Using proxy: ${proxiedUrl}`)
-      return fetch(proxiedUrl, proxyOptions)
+      // 回退到自定义代理
+      if (proxyUrl) {
+        const targetUrl = encodeURIComponent(url)
+        const proxiedUrl = `${proxyUrl}?target=${targetUrl}`
+        
+        const proxyOptions = {
+          ...options,
+          headers: {
+            ...options.headers,
+            'X-Target-URL': url,
+            'X-Proxy-Type': 'github-upload'
+          }
+        }
+        
+        console.log(`[upload] Using custom proxy: ${proxiedUrl}`)
+        return fetch(proxiedUrl, proxyOptions)
+      }
     }
     
     return fetch(url, options)
@@ -59,7 +87,8 @@ export const onRequestPost = async ({ request, env }) => {
     let sourceUrl = ''
     
     const proxyUrl = env.GIT_URL
-    const proxyFetch = createProxyFetch(proxyUrl)
+    const builtinProxyUrl = '/api/audio'
+    const proxyFetch = createProxyFetch(proxyUrl, builtinProxyUrl)
 
     if (/multipart\/form-data/i.test(ct)) {
       const form = await request.formData()
