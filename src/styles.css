@@ -646,6 +646,8 @@ footer a {
   min-width: 140px;
   min-height: 140px;
   contain: layout style;
+  will-change: transform;
+  transform: translateZ(0);
 }
 .disc { 
   position: relative; 
@@ -660,6 +662,9 @@ footer a {
   place-items: center; 
   overflow: hidden;
   transition: transform 0.3s ease;
+  will-change: transform;
+  contain: layout style;
+  transform: translateZ(0);
 }
 
 .disc img { 
@@ -668,6 +673,9 @@ footer a {
   object-fit: cover; 
   border-radius: 50%;
   transition: transform 0.3s ease;
+  will-change: transform;
+  contain: layout style;
+  transform: translateZ(0);
 }
 
 .art-lg::before {
