@@ -80,4 +80,18 @@
 /*.css
   Content-Type: text/css
 
+/api/audio
+  Cache-Control: public, max-age=3600, s-maxage=86400
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Range, User-Agent, X-Requested-With
+  Access-Control-Expose-Headers: Content-Length, Content-Range, Accept-Ranges, X-Processing-Time, X-Cache-Status
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+
+/api/audio*
+  X-Chrome-Mobile: true
+  X-Mobile-Optimized: true
+  X-Audio-Streaming: enabled
+  X-Range-Support: bytes
 
