@@ -85,12 +85,15 @@ select.form-input:focus { border-color: #6b7280; }
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: 12px;
+  height: 400px;
+  min-height: 400px;
   max-height: 400px;
-  min-height: 200px;
   content-visibility: auto;
-  contain-intrinsic-size: 600px 320px;
+  contain-intrinsic-size: 600px 400px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
   contain: layout style;
+  grid-area: playlist;
+  overflow: hidden;
 }
 
 /* 虚拟滚动容器样式 */
@@ -361,6 +364,14 @@ body {
   contain: layout style;
   min-height: 100vh;
   box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas: 
+    "player"
+    "search"
+    "playlist"
+    "footer";
+  gap: 12px;
 }
 
 h1 {
@@ -382,6 +393,9 @@ h1 {
   padding: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
   contain: layout style;
+  grid-area: player;
+  min-height: 200px;
+  height: 200px;
 }
 
 .player { position: relative; }
@@ -521,7 +535,12 @@ input[type="range"] { width: 200px; }
 
 .playlist { margin: 0; padding: 0; list-style: none; }
 
-.search-bar { margin: 0; }
+.search-bar { 
+  margin: 0; 
+  grid-area: search;
+  height: 44px;
+  min-height: 44px;
+}
 
 .search-input {
   width: 100%;
@@ -576,6 +595,15 @@ footer {
   color: var(--sub);
   font-family: inherit;
   contain: layout style;
+  grid-area: footer;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 footer a {
@@ -736,10 +764,19 @@ footer a {
 
 
 @media (max-width: 480px) {
-  .container { max-width: 100%; padding: 12px 12px 0 12px; }
+  .container { 
+    max-width: 100%; 
+    padding: 12px 12px 0 12px; 
+    grid-template-rows: auto auto 1fr auto;
+    gap: 8px;
+  }
   .settings-btn { top: 8px; right: 8px; }
 
-  .player { padding: 12px; }
+  .player { 
+    padding: 12px; 
+    height: 180px;
+    min-height: 180px;
+  }
   .player-card { padding: 14px 14px 12px; }
   .top { grid-template-columns: 96px 1fr; gap: 12px; }
   .art-lg { width: 96px; height: 96px; }
@@ -769,7 +806,9 @@ footer a {
 
   /* 移动端虚拟播放列表样式 */
   .virtual-playlist { 
-    max-height: calc(100vh - 330px); 
+    height: calc(100vh - 330px);
+    min-height: calc(100vh - 330px);
+    max-height: calc(100vh - 330px);
     margin-bottom: 0;
     margin-top: 0;
   }
