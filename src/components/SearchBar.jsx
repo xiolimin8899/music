@@ -10,6 +10,8 @@ export default function SearchBar({ value, onChange }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         aria-label="搜索歌曲"
+        id="search-input"
+        name="search"
       />
     </div>
   )

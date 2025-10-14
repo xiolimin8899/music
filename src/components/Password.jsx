@@ -52,6 +52,7 @@ export default function Password({ open, title, message, onConfirm, onCancel, on
                 autoCapitalize="off"
                 spellCheck={false}
                 name="admin-password"
+                id="admin-password"
                 inputMode="text"
               />
               {error && (

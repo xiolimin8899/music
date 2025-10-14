@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { preloadBackgroundImage } from '../utils/image'
+import Manager from './Manager'
 
 export default function Settings({ open, onClose, onAddSong, onImportRepo, onImportApi, onResetPlaylist, onWebDavUpload, onWebDavRestore }) {
   const [songUrl, setSongUrl] = useState('')
@@ -11,16 +12,18 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
   const [gitRepo, setGitRepo] = useState('')
   const [gitToken, setGitToken] = useState('')
   const [gitBranch, setGitBranch] = useState('')
-  const [gitPath, setGitPath] = useState('public/music')
+  const [gitPath, setGitPath] = useState('music')
   const [apiUrl, setApiUrl] = useState('')
   const [fontFamily, setFontFamily] = useState('')
   const [bgUrl, setBgUrl] = useState('')
   const [localBgFile, setLocalBgFile] = useState(null)
   const [localBgPreview, setLocalBgPreview] = useState('')
-  const [proxyTestResult, setProxyTestResult] = useState('')
-  const [isTestingProxy, setIsTestingProxy] = useState(false)
-  const [showProxyResult, setShowProxyResult] = useState(false)
-  const [testUrl, setTestUrl] = useState('')
+  const [audioLoadMethod, setAudioLoadMethod] = useState('builtin')
+  const [customProxyUrl, setCustomProxyUrl] = useState('')
+  const [appConfig, setAppConfig] = useState({
+    customProxyUrl: '',
+    hasCustomProxy: false
+  })
   const FONT_PRESETS = [
     { label: '系统默认', value: '' },
     { label: '宋体', value: "'SimSun', 'NSimSun', 'Songti SC', serif" },
@@ -32,11 +35,14 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
     { label: '思源黑体', value: "'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', sans-serif" }
   ]
   const [fontPreset, setFontPreset] = useState('')
+  const [showCacheManager, setShowCacheManager] = useState(false)
 
   useEffect(() => {
     if (!open) return
     try {
       setFontFamily(localStorage.getItem('ui.fontFamily') || '')
+      setAudioLoadMethod(localStorage.getItem('ui.audioLoadMethod') || '')
+      setCustomProxyUrl(localStorage.getItem('ui.customProxyUrl') || '')
       const localBgData = localStorage.getItem('ui.localBgFile')
       if (localBgData) {
         try {
@@ -53,8 +59,37 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
       const saved = localStorage.getItem('ui.fontFamily') || ''
       const matched = FONT_PRESETS.find(p => p.value === saved)
       setFontPreset(matched ? matched.value : '')
+      
+      // 加载音频设置
+      setAudioLoadMethod(localStorage.getItem('ui.audioLoadMethod') || '')
+      setCustomProxyUrl(localStorage.getItem('ui.customProxyUrl') || '')
     } catch {}
   }, [open])
+
+  // 获取应用配置
+  useEffect(() => {
+    const fetchAppConfig = async () => {
+      try {
+        const response = await fetch('/api/fetch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getConfig' })
+        })
+        if (response.ok) {
+          const config = await response.json()
+          setAppConfig(config)
+        }
+      } catch (error) {
+        console.warn('Failed to load app config:', error)
+        setAppConfig({
+          customProxyUrl: '',
+          hasCustomProxy: false
+        })
+      }
+    }
+    
+    fetchAppConfig()
+  }, [])
 
   const applyAppearance = ({ ff, bg }) => {
     const root = document.documentElement
@@ -75,226 +110,6 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
     }
   }
 
-  const testProxyMethods = async () => {
-    setIsTestingProxy(true)
-    setProxyTestResult('')
-    
-    const currentTestUrl = testUrl.trim() || 'https://raw.githubusercontent.com/zxlwqa/music/main/public/music/犯错 - 降速版.mp3'
-    let result = '               代理检测\n==========================================\n\n'
-    
-    try {
-      result += '🌍 环境检测\n-------------------------------------\n'
-      
-      const isCloudflarePages = window.location.hostname.includes('.pages.dev') || 
-                                window.location.hostname.includes('cloudflare') ||
-                                window.location.hostname.includes('workers.dev') ||
-                                window.location.hostname.includes('.dpdns.org') ||
-                                window.location.hostname.includes('.cf') ||
-                                window.location.hostname.includes('.pages')
-      
-      const isDocker = window.location.hostname.includes('localhost') || 
-                       window.location.hostname.includes('127.0.0.1') ||
-                       window.location.hostname.includes('192.168.') ||
-                       window.location.hostname.includes('10.0.') ||
-                       window.location.hostname.includes('.hf.space') ||
-                       window.location.hostname.includes('huggingface.co/spaces') ||
-                       window.location.port && window.location.port !== '80' && window.location.port !== '443'
-      
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      
-      let deploymentEnv = '未知'
-      if (isCloudflarePages) {
-        deploymentEnv = 'Cloudflare Pages'
-      } else if (isDocker) {
-        deploymentEnv = 'Docker'
-      } else {
-        deploymentEnv = '其他'
-      }
-      
-      result += `   部署环境: ${deploymentEnv}\n`
-      result += `   设备类型: ${isMobile ? '移动端' : '桌面端'}\n`
-      result += `   当前域名: ${window.location.hostname}\n`
-      result += `   协议: ${window.location.protocol}\n`
-      
-      let ipInfo = '获取中...'
-      try {
-        const ipResponse = await fetch('https://ipapi.co/json/', {
-          signal: AbortSignal.timeout(3000)
-        })
-        if (ipResponse.ok) {
-          const ipData = await ipResponse.json()
-          
-          const locationMap = {
-            'Hong Kong': '香港',
-            'China': '中国',
-            'United States': '美国',
-            'Japan': '日本',
-            'Singapore': '新加坡',
-            'Taiwan': '台湾',
-            'South Korea': '韩国',
-            'United Kingdom': '英国',
-            'Germany': '德国',
-            'France': '法国',
-            'Canada': '加拿大',
-            'Australia': '澳大利亚',
-            'India': '印度',
-            'Brazil': '巴西',
-            'Russia': '俄罗斯'
-          }
-          
-          let location = ''
-          if (ipData.city && ipData.country_name && ipData.city !== ipData.country_name) {
-            const cityName = locationMap[ipData.city] || ipData.city
-            const countryName = locationMap[ipData.country_name] || ipData.country_name
-            location = `${cityName}, ${countryName}`
-          } else {
-            location = locationMap[ipData.country_name] || ipData.country_name || '未知位置'
-          }
-          
-          ipInfo = `${ipData.ip} (${location})`
-        } else {
-          throw new Error('第一个服务失败')
-        }
-      } catch (error) {
-        try {
-          const backupResponse = await fetch('https://api.ipify.org?format=json', {
-            signal: AbortSignal.timeout(3000)
-          })
-          if (backupResponse.ok) {
-            const backupData = await backupResponse.json()
-            ipInfo = `${backupData.ip} (位置未知)`
-          } else {
-            throw new Error('备用服务失败')
-          }
-        } catch (backupError) {
-          ipInfo = '获取失败'
-        }
-      }
-      result += `   IP地址: ${ipInfo}\n`
-      
-      result += `   端口: ${window.location.port || '默认'}\n`
-      result += `   用户代理: ${navigator.userAgent.substring(0, 50)}...\n`
-      result += '\n'
-
-      result += '🥇 测试1: 原始URL直接访问\n-------------------------------------\n'
-      result += `   测试URL: ${currentTestUrl}\n`
-      try {
-        const startTime = Date.now()
-        const response = await fetch(currentTestUrl, {
-          method: 'HEAD',
-          signal: AbortSignal.timeout(5000)
-        })
-        const duration = Date.now() - startTime
-        
-        if (response.ok) {
-          result += '✅ 原始URL访问成功\n'
-          result += `   状态码: ${response.status}\n`
-          result += `   响应时间: ${duration}ms\n`
-          result += `   Content-Type: ${response.headers.get('content-type')}\n`
-        } else {
-          result += '❌ 原始URL访问失败\n'
-          result += `   状态码: ${response.status}\n`
-        }
-      } catch (error) {
-        result += '❌ 原始URL访问错误: ' + error.message + '\n'
-        if (error.name === 'TypeError' && error.message.includes('CORS')) {
-          result += '   💡 这是预期的CORS错误，说明需要代理\n'
-        }
-      }
-      result += '\n'
-
-      result += '🥈 测试2: 内置代理服务 (fetch.js)\n-------------------------------------\n'
-      try {
-        const startTime = Date.now()
-        const response = await fetch('/api/fetch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: currentTestUrl }),
-          signal: AbortSignal.timeout(20000)
-        })
-        const duration = Date.now() - startTime
-        
-        if (response.ok) {
-          const data = await response.json()
-          result += '✅ 内置代理服务正常\n'
-          result += `   状态码: ${response.status}\n`
-          result += `   响应时间: ${duration}ms\n`
-          result += `   Content-Type: ${data.contentType}\n`
-          result += `   Base64长度: ${data.base64 ? data.base64.length : 0} 字符\n`
-        } else {
-          result += '❌ 内置代理服务失败\n'
-          result += `   状态码: ${response.status}\n`
-          const errorData = await response.json().catch(() => ({}))
-          result += `   错误信息: ${errorData.error || '未知错误'}\n`
-        }
-      } catch (error) {
-        result += '❌ 内置代理服务错误: ' + error.message + '\n'
-      }
-      result += '\n'
-
-      result += '🥉 测试3: 自定义代理服务\n-------------------------------------\n'
-      try {
-        const configResponse = await fetch('/api/fetch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getConfig' })
-        })
-        
-        if (configResponse.ok) {
-          const config = await configResponse.json()
-          result += '📋 配置信息:\n'
-          result += `   自定义代理URL: ${config.customProxyUrl || '未配置'}\n`
-          result += `   是否启用: ${config.hasCustomProxy ? '是' : '否'}\n`
-          
-          if (config.hasCustomProxy && config.customProxyUrl) {
-            result += '\n🔄 测试自定义代理功能...\n'
-            
-            const startTime = Date.now()
-            const proxyResponse = await fetch('/api/fetch', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                action: 'customProxy',
-                url: currentTestUrl 
-              }),
-              signal: AbortSignal.timeout(15000)
-            })
-            const duration = Date.now() - startTime
-            
-            if (proxyResponse.ok) {
-              const data = await proxyResponse.json()
-              result += '✅ 自定义代理服务正常\n'
-              result += `   状态码: ${proxyResponse.status}\n`
-              result += `   响应时间: ${duration}ms\n`
-              result += `   Content-Type: ${data.contentType}\n`
-              result += `   Base64长度: ${data.base64 ? data.base64.length : 0} 字符\n`
-            } else {
-              result += '❌ 自定义代理服务失败\n'
-              result += `   状态码: ${proxyResponse.status}\n`
-              const errorData = await proxyResponse.json().catch(() => ({}))
-              result += `   错误信息: ${errorData.error || '未知错误'}\n`
-            }
-          } else {
-            result += '⚠️  自定义代理服务未配置\n'
-            result += '   请在Cloudflare Pages设置中添加 GIT_URL 环境变量\n'
-          }
-        } else {
-          result += '❌ 无法获取配置信息\n'
-        }
-      } catch (error) {
-        result += '❌ 自定义代理服务错误: ' + error.message + '\n'
-      }
-      result += '\n'
-
-
-    } catch (error) {
-      result += '❌ 检测过程中发生错误: ' + error.message + '\n'
-    }
-    
-    setProxyTestResult(result)
-    setIsTestingProxy(false)
-    setShowProxyResult(true)
-  }
 
   if (!open) return null
 
@@ -357,6 +172,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
   }
 
   return (
+    <>
     <div className="modal-backdrop" role="dialog" aria-modal="true">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3 className="modal-title" style={{ textAlign: 'center' }}>设置</h3>
@@ -369,6 +185,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               type="file"
               multiple
               accept="audio/*"
+              id="local-file-input"
+              name="local-file"
               onChange={(e) => {
                 const files = Array.from(e.target.files || [])
                 if (!files.length) return
@@ -432,17 +250,17 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           <div className="form-group">
             <div className="section-title">URL上传</div>
             <label className="form-label">歌曲URL</label>
-            <input className="form-input" type="url" placeholder="https://player.zxlwq.dpdns.org.mp3" value={songUrl} onChange={(e) => setSongUrl(e.target.value)} />
+            <input className="form-input" type="url" placeholder="https://player.zxlwq.dpdns.org.mp3" value={songUrl} onChange={(e) => setSongUrl(e.target.value)} id="song-url" name="song-url" />
           </div>
           <div className="form-row">
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
               <label className="form-label">歌名-歌手</label>
-              <input className="form-input" type="text" placeholder="歌名-歌手" value={songTitle} onChange={(e) => setSongTitle(e.target.value)} />
+              <input className="form-input" type="text" placeholder="歌名-歌手" value={songTitle} onChange={(e) => setSongTitle(e.target.value)} id="song-title" name="song-title" />
             </div>
           </div>
           <div className="form-group">
             <label className="form-label">MV 链接（可选）</label>
-            <input className="form-input" type="url" placeholder="https://example.com/video" value={songMvUrl} onChange={(e) => setSongMvUrl(e.target.value)} />
+            <input className="form-input" type="url" placeholder="https://example.com/video" value={songMvUrl} onChange={(e) => setSongMvUrl(e.target.value)} id="song-mv-url" name="song-mv-url" />
           </div>
           <div className="form-actions" style={{ gap: 10 }}>
             <button type="button" className="btn-sakura" onClick={handleAddSong}>添加歌曲</button>
@@ -452,7 +270,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           <div className="section-title">导入GitHub仓库歌曲</div>
           <div className="form-group">
             <label className="form-label">GIT_REPO</label>
-            <input className="form-input" type="text" placeholder="用户名/仓库名" value={gitRepo} onChange={(e) => setGitRepo(e.target.value)} />
+            <input className="form-input" type="text" placeholder="用户名/仓库名" value={gitRepo} onChange={(e) => setGitRepo(e.target.value)} id="git-repo" name="git-repo" />
           </div>
           <div className="form-group">
             <label className="form-label">GIT_TOKEN</label>
@@ -467,15 +285,16 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               autoCapitalize="off"
               spellCheck={false}
               name="git-token"
+              id="git-token"
             />
           </div>
           <div className="form-group">
             <label className="form-label">GIT_BRANCH（可选）</label>
-            <input className="form-input" type="text" placeholder="main" value={gitBranch} onChange={(e) => setGitBranch(e.target.value)} />
+            <input className="form-input" type="text" placeholder="main" value={gitBranch} onChange={(e) => setGitBranch(e.target.value)} id="git-branch" name="git-branch" />
           </div>
           <div className="form-group">
             <label className="form-label">导入路径</label>
-            <input className="form-input" type="text" placeholder="public/music 或 music 或 ." value={gitPath} onChange={(e) => setGitPath(e.target.value)} />
+            <input className="form-input" type="text" placeholder="public/music 或 music 或 ." value={gitPath} onChange={(e) => setGitPath(e.target.value)} id="git-path" name="git-path" />
           </div>
           <div className="form-actions">
             <button type="button" className="btn-sakura" onClick={() => onImportRepo && onImportRepo({ gitRepo, gitToken, gitBranch, gitPath })}>导入歌曲</button>
@@ -484,7 +303,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           <div className="section-title">导入API歌单</div>
           <div className="form-group">
             <label className="form-label">API链接</label>
-            <input className="form-input" type="url" placeholder="https://player.zxlwq.dpdns.org" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} />
+            <input className="form-input" type="url" placeholder="https://player.zxlwq.dpdns.org" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} id="api-url" name="api-url" />
           </div>
           <div className="form-actions">
             <button type="button" className="btn-sakura" onClick={() => onImportApi && onImportApi({ apiUrl })}>导入歌曲</button>
@@ -524,6 +343,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               className="form-input"
               type="file"
               accept="image/*"
+              id="local-bg-file"
+              name="local-bg-file"
               onChange={(e) => {
                 const file = e.target.files?.[0]
                 if (!file) {
@@ -589,6 +410,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               type="url" 
               placeholder="images/background.webp" 
               value={bgUrl} 
+              id="bg-url"
+              name="bg-url"
               onChange={(e) => {
                 const newBgUrl = e.target.value
                 setBgUrl(newBgUrl)
@@ -614,7 +437,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               onClick={() => {
                 try {
                   localStorage.setItem('ui.fontFamily', fontFamily || '')
-                  
+                  localStorage.setItem('ui.audioLoadMethod', audioLoadMethod || '')
+                  localStorage.setItem('ui.customProxyUrl', customProxyUrl || '')
 
                   const finalBgUrl = localBgPreview || bgUrl
                   localStorage.setItem('ui.bgUrl', finalBgUrl || '')
@@ -636,79 +460,93 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             >应用并保存</button>
           </div>
           <hr className="hr" />
-          <div className="section-title">系统设置</div>
+          <div className="section-title">音频加载设置</div>
           <div className="form-group">
-            <label className="form-label">测试URL</label>
-            <input 
-              className="form-input" 
-              type="url" 
-              placeholder="https://raw.githubusercontent.com/zxlwqa/music/main/public/music/.mp3" 
-              value={testUrl} 
-              onChange={(e) => setTestUrl(e.target.value)}
-            />
-          </div>
-          <div className="form-group">
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn-sakura"
-                onClick={testProxyMethods}
-                disabled={isTestingProxy}
-              >
-                {isTestingProxy ? '检测中...' : '代理检测'}
-              </button>
+            <label className="form-label"></label>
+            <select
+              className="form-input"
+              value={audioLoadMethod}
+              onChange={(e) => setAudioLoadMethod(e.target.value)}
+              id="audio-load-method"
+              name="audio-load-method"
+            >
+              <option value="">内置代理</option>
+              <option value="direct">原始URL</option>
+              <option value="custom">自定义代理</option>
+            </select>
+            <div className="form-tip">
+              {audioLoadMethod === '' && '使用内置代理服务，兼容性好'}
+              {audioLoadMethod === 'direct' && '直接访问原始URL，但可能受CORS限制'}
+              {audioLoadMethod === 'custom' && '使用自定义代理服务，需要配置代理URL'}
             </div>
+          </div>
+          {audioLoadMethod === 'custom' && (
+            <div className="form-group">
+              <label className="form-label">自定义代理URL</label>
+              <input 
+                className="form-input" 
+                type="url" 
+                placeholder={appConfig.customProxyUrl || "https://music-proxy.com/api/audio?url="} 
+                value={customProxyUrl} 
+                onChange={(e) => setCustomProxyUrl(e.target.value)}
+                id="custom-proxy-url"
+                name="custom-proxy-url"
+              />
+              {appConfig.customProxyUrl && (
+                <div className="form-tip" style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
+                  环境变量配置: {appConfig.customProxyUrl}
+                  <br />
+                  <span style={{ color: '#ff6b6b' }}>输入代理URL将自动覆盖环境变量</span>
+                </div>
+              )}
+              {!appConfig.customProxyUrl && (
+                <div className="form-tip" style={{ fontSize: '12px', color: '#888' }}>
+                  当前无环境变量配置，将使用上方输入的代理URL
+                </div>
+              )}
+            </div>
+          )}
+          <div className="form-actions" style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
+            <button
+              type="button"
+              className="btn-sakura"
+              onClick={() => setShowCacheManager(true)}
+            >
+              音频缓存管理
+            </button>
+            <button
+              type="button"
+              className="btn-sakura"
+              onClick={() => {
+                try {
+                  localStorage.setItem('ui.audioLoadMethod', audioLoadMethod || '')
+                  localStorage.setItem('ui.customProxyUrl', customProxyUrl || '')
+                  
+                  // 触发自定义事件，通知Player组件设置已变化
+                  window.dispatchEvent(new CustomEvent('audioSettingsChanged'))
+                  
+                  alert('音频加载设置已保存！')
+                } catch (error) {
+                  console.error('保存音频设置失败:', error)
+                  alert('保存失败，请重试')
+                }
+              }}
+             >
+               应用并保存
+             </button>
           </div>
         </div>
         <div className="modal-actions">
           <button type="button" className="btn-danger" onClick={onClose}>关闭</button>
         </div>
       </div>
-      
-      {/* 代理检测结果弹窗 */}
-      {showProxyResult && (
-        <div className="modal-backdrop" style={{ zIndex: 1001 }}>
-          <div className="modal" style={{ 
-            maxWidth: '90vw', 
-            maxHeight: '90vh', 
-            overflow: 'auto',
-            backgroundColor: 'rgba(0, 0, 0, 0.2)',
-            backdropFilter: 'blur(15px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}>
-            <h3 className="modal-title" style={{ textAlign: 'center' }}>代理检测结果</h3>
-            <div className="modal-body">
-              <pre className="proxy-result-pre" style={{ 
-                whiteSpace: 'pre-wrap', 
-                wordBreak: 'break-word', 
-                fontSize: '14px', 
-                lineHeight: '1.5',
-                fontFamily: 'monospace',
-                backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(8px)',
-                padding: '16px',
-                borderRadius: '8px',
-                overflow: 'auto',
-                maxHeight: '60vh',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: 'rgba(255, 255, 255, 0.95)'
-              }}>
-                {proxyTestResult}
-              </pre>
-            </div>
-            <div className="modal-actions">
-              <button 
-                type="button" 
-                className="btn-sakura" 
-                onClick={() => setShowProxyResult(false)}
-              >
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
+    
+    {/* 音频缓存管理 */}
+    <Manager 
+      isOpen={showCacheManager} 
+      onClose={() => setShowCacheManager(false)} 
+    />
+    </>
   )
 }

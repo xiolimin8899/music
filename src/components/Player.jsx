@@ -1,93 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getImagePreloader } from '../utils/image'
-
-function Icon({ name }) {
-  const common = { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24' }
-  switch (name) {
-    case 'prev':
-      return (
-        <svg {...common}>
-          <polygon points="19 20 9 12 19 4 19 20"></polygon>
-          <line x1="5" y1="19" x2="5" y2="5"></line>
-        </svg>
-      )
-    case 'next':
-      return (
-        <svg {...common}>
-          <polygon points="5 4 15 12 5 20 5 4"></polygon>
-          <line x1="19" y1="5" x2="19" y2="19"></line>
-        </svg>
-      )
-    case 'play':
-      return (
-        <svg {...common}>
-          <polygon points="6 3 20 12 6 21 6 3"></polygon>
-        </svg>
-      )
-    case 'pause':
-      return (
-        <svg {...common}>
-          <rect x="6" y="4" width="4" height="16"></rect>
-          <rect x="14" y="4" width="4" height="16"></rect>
-        </svg>
-      )
-    case 'repeat':
-      return (
-        <svg {...common}>
-          <polyline points="17 1 21 5 17 9"></polyline>
-          <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-          <polyline points="7 23 3 19 7 15"></polyline>
-          <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-        </svg>
-      )
-    case 'repeat_on':
-      return (
-        <svg {...common}>
-          <polyline points="17 1 21 5 17 9"></polyline>
-          <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-          <polyline points="7 23 3 19 7 15"></polyline>
-          <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-          <text x="12" y="13.5" fill="currentColor" font-size="6" text-anchor="middle" font-weight="300">1</text>
-        </svg>
-      )
-    case 'shuffle':
-      return (
-        <svg {...common}>
-          <line x1="4" y1="7" x2="20" y2="7"></line>
-          <line x1="4" y1="12" x2="20" y2="12"></line>
-          <line x1="4" y1="17" x2="20" y2="17"></line>
-        </svg>
-      )
-    case 'shuffle_on':
-      return (
-        <svg {...common}>
-          <polyline points="16 3 21 3 21 8"></polyline>
-          <line x1="4" y1="20" x2="21" y2="3"></line>
-          <polyline points="21 16 21 21 16 21"></polyline>
-          <line x1="15" y1="15" x2="21" y2="21"></line>
-          <line x1="4" y1="4" x2="9" y2="9"></line>
-        </svg>
-      )
-    case 'volume':
-      return (
-        <svg {...common}>
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-        </svg>
-      )
-    case 'volume_muted':
-      return (
-        <svg {...common}>
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <line x1="16" y1="8" x2="22" y2="14"></line>
-          <line x1="22" y1="8" x2="16" y2="14"></line>
-        </svg>
-      )
-    default:
-      return null
-  }
-}
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import CoverArt from './CoverArt'
+import Controls from './Controls'
+import Progress from './Progress'
+import { useAudioCache } from '../hooks/Cache'
 
 const LOOP_MODES = ['off', 'one']
 
@@ -104,78 +19,108 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
   const [loopMode, setLoopMode] = useState('off')
   const [shuffle, setShuffle] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
-  const [coverLoaded, setCoverLoaded] = useState(false)
   const [audioLoadTimeout, setAudioLoadTimeout] = useState(false)
   const [networkSlow, setNetworkSlow] = useState(false)
   const userVolumeRef = useRef(1)
   const userMutedRef = useRef(false)
-  const audioCtxRef = useRef(null)
-  const gainRef = useRef(null)
-  const mediaSourceRef = useRef(null)
-  const audioConnectedRef = useRef(false)
-  const analyserRef = useRef(null)
-  const rafRef = useRef(null)
   const loadTimeoutRef = useRef(null)
   const [appConfig, setAppConfig] = useState({
     customProxyUrl: '',
     hasCustomProxy: false
   })
+  
+  const audioContextRef = useRef(null)
+  const blobUrlsRef = useRef(new Set()) // 用于跟踪创建的Blob URLs
+  const testAudioRef = useRef(null) // 用于测试音频的临时对象
+
+  // 音频缓存Hook
+  const { 
+    isEnabled: cacheEnabled, 
+    preloadNext, 
+    preloadPrev, 
+    smartPreload, 
+    getCachedAudio,
+    preloadAudio 
+  } = useAudioCache()
 
   const hasTracks = Array.isArray(tracks) && tracks.length > 0
   const currentTrack = hasTracks ? tracks[currentIndex] : null
   
-  const processLargeFileInWorker = async (base64, contentType) => {
-    return new Promise((resolve, reject) => {
-      // 创建内联Worker
-      const workerCode = `
-        self.onmessage = function(e) {
-          const { base64, contentType } = e.data
-          try {
-            const binaryString = atob(base64)
-            const bytes = new Uint8Array(binaryString.length)
-            for (let i = 0; i < binaryString.length; i++) {
-              bytes[i] = binaryString.charCodeAt(i)
-            }
-            const blob = new Blob([bytes], { type: contentType })
-            self.postMessage({ success: true, blob })
-          } catch (error) {
-            self.postMessage({ success: false, error: error.message })
-          }
-        }
-      `
-      
-      const blob = new Blob([workerCode], { type: 'application/javascript' })
-      const worker = new Worker(URL.createObjectURL(blob))
-      
-      worker.postMessage({ base64, contentType })
-      
-      worker.onmessage = (e) => {
-        worker.terminate()
-        if (e.data.success) {
-          const blobUrl = URL.createObjectURL(e.data.blob)
-          resolve(blobUrl)
-        } else {
-          reject(new Error(e.data.error))
-        }
-      }
-      
-      worker.onerror = (error) => {
-        worker.terminate()
-        reject(error)
-      }
-      
-      // 设置超时
-      setTimeout(() => {
-        worker.terminate()
-        reject(new Error('Worker timeout'))
-      }, 10000)
-    })
+  const parseTrackTitle = (title) => {
+    if (!title) return { song: '', artist: '' }
+
+    const match = title.match(/^(.+?)(?:\s{2,}|\s-\s)(.+)$/)
+    if (match) {
+      return { song: match[1].trim(), artist: match[2].trim() }
+    }
+    return { song: title, artist: '' }
   }
   
-  // 检测是否为移动端
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  const { song, artist } = parseTrackTitle(currentTrack?.title)
   
-  // 获取应用配置（包括自定义代理URL）
+  
+  
+  useEffect(() => {
+    const initAudioContext = async () => {
+      try {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        const isChrome = /Chrome/i.test(navigator.userAgent)
+        
+        if (isMobile && window.AudioContext) {
+          audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
+          
+          const activateContext = async () => {
+            try {
+              if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+                await audioContextRef.current.resume()
+                console.log('Audio context activated successfully')
+              }
+            } catch (error) {
+              console.warn('Failed to activate audio context:', error)
+            }
+          }
+          
+          // 针对Chrome浏览器添加更多激活事件
+          const events = isChrome ? 
+            ['touchstart', 'touchend', 'click', 'keydown', 'mousedown', 'pointerdown'] :
+            ['touchstart', 'touchend', 'click', 'keydown']
+          
+          const activateOnce = () => {
+            activateContext()
+            events.forEach(event => {
+              document.removeEventListener(event, activateOnce)
+            })
+          }
+          
+          events.forEach(event => {
+            document.addEventListener(event, activateOnce, { once: true, passive: true })
+          })
+          
+          // 添加页面可见性变化时的处理
+          const handleVisibilityChange = () => {
+            if (!document.hidden && audioContextRef.current?.state === 'suspended') {
+              activateContext()
+            }
+          }
+          document.addEventListener('visibilitychange', handleVisibilityChange)
+          
+          // 返回清理函数
+          return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+            events.forEach(event => {
+              document.removeEventListener(event, activateOnce)
+            })
+          }
+        }
+      } catch (error) {
+        console.warn('Audio context initialization failed:', error)
+      }
+    }
+    
+    const cleanup = initAudioContext()
+    return cleanup
+  }, [])
+
   useEffect(() => {
     const fetchAppConfig = async () => {
       try {
@@ -190,7 +135,7 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
         }
       } catch (error) {
         console.warn('Failed to load app config:', error)
-        // 如果获取配置失败，使用默认值
+
         setAppConfig({
           customProxyUrl: '',
           hasCustomProxy: false
@@ -201,136 +146,214 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     fetchAppConfig()
   }, [])
   
-  // 网络状态检测（移动端优化）
   useEffect(() => {
     const checkNetworkSpeed = async () => {
       try {
         const start = Date.now()
         
-        // 移动端使用更短的超时时间
-        const timeout = isMobile ? 3000 : 5000
-        const slowThreshold = isMobile ? 1500 : 2000
-        
-        // 使用一个小的测试文件来检测网络速度
         const testUrl = 'https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore'
         const response = await fetch(testUrl, {
           method: 'HEAD',
-          signal: AbortSignal.timeout(timeout)
+          signal: AbortSignal.timeout(5000)
         })
         const duration = Date.now() - start
-        setNetworkSlow(duration > slowThreshold)
+        setNetworkSlow(duration > 2000)
       } catch {
-        setNetworkSlow(true) // 检测失败时假设网络较慢
+        setNetworkSlow(true)
       }
     }
     
     checkNetworkSpeed()
-  }, [isMobile])
+  }, [])
   
-  // 获取音频 URL，智能选择代理方式
   const getAudioUrl = (track) => {
     if (!track?.url) return ''
     
-    // 检测是否为GitHub raw链接或其他可能有CORS问题的链接
-    const isCorsBlocked = (url) => {
-      try {
-        const urlObj = new URL(url)
-        // GitHub raw链接、其他外部域名等可能有CORS限制
-        return urlObj.hostname === 'raw.githubusercontent.com' || 
-               urlObj.hostname === 'github.com' ||
-               !urlObj.hostname.includes(window.location.hostname)
-      } catch {
-        return false
+    // 获取用户设置的音频加载方式，默认为内置代理
+    const audioLoadMethod = localStorage.getItem('ui.audioLoadMethod')
+    const userCustomProxyUrl = localStorage.getItem('ui.customProxyUrl') || ''
+    
+    try {
+      const u = new URL(track.url)
+      if (u.protocol === 'http:' || u.protocol === 'https:') {
+        // 只有当用户主动选择了其他方式时才使用用户设置
+        if (audioLoadMethod === 'direct') {
+          // 用户选择了直连原始URL
+          return track.url
+        } else if (audioLoadMethod === 'custom') {
+          // 用户选择了自定义代理
+          let proxyUrl
+          
+          if (userCustomProxyUrl) {
+            // 用户输入了自定义代理，优先使用用户输入
+            proxyUrl = userCustomProxyUrl
+          } else if (appConfig.customProxyUrl) {
+            // 用户没有输入，使用环境变量
+            proxyUrl = appConfig.customProxyUrl
+          }
+          
+          if (proxyUrl) {
+            const finalProxyUrl = proxyUrl.endsWith('?') || proxyUrl.endsWith('&') 
+              ? proxyUrl 
+              : proxyUrl + (proxyUrl.includes('?') ? '&' : '?')
+            return `${finalProxyUrl}url=${encodeURIComponent(track.url)}`
+          } else {
+            return `/api/audio?url=${encodeURIComponent(track.url)}`
+          }
+        } else {
+          // 默认使用内置代理
+          return `/api/audio?url=${encodeURIComponent(track.url)}`
+        }
       }
-    }
-    
-    // 如果有CORS问题，优先尝试原始URL，失败时再使用代理
-    if (isCorsBlocked(track.url)) {
-      // 优先尝试原始URL，让错误处理机制来选择代理
-      return track.url
-    }
-    
-    // 否则直接使用原始URL
+    } catch {}
     return track.url
   }
+
+  // 监听localStorage变化，实时更新音频URL
+  useEffect(() => {
+    const handleStorageChange = () => {
+      // 当设置变化时，重新加载当前音频
+      if (currentTrack) {
+        const audio = audioRef.current
+        if (audio) {
+          const newUrl = getAudioUrl(currentTrack)
+          if (audio.src !== newUrl) {
+            audio.src = newUrl
+            audio.load()
+          }
+        }
+      }
+    }
+
+    // 监听localStorage变化
+    window.addEventListener('storage', handleStorageChange)
+    
+    // 监听自定义事件（用于同页面内的设置变化）
+    window.addEventListener('audioSettingsChanged', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('audioSettingsChanged', handleStorageChange)
+    }
+  }, [currentTrack])
   
-  // 音频加载失败时的处理
   const handleAudioError = async (e) => {
     const audio = audioRef.current
     if (!audio || !currentTrack) return
     
-    // 防止无限循环：如果当前URL已经是代理URL，不再重试
     const currentSrc = audio.src
-    const customProxyUrl = appConfig.customProxyUrl
-    
-    if (customProxyUrl && currentSrc.includes(customProxyUrl)) {
-      console.log('Already using custom proxy, stopping retry')
-      return
-    }
-    
-    if (currentSrc.includes('/api/audio') || currentSrc.includes('/api/fetch')) {
-      console.log('Already using built-in proxy, stopping retry')
-      return
-    }
+    const userCustomProxyUrl = localStorage.getItem('ui.customProxyUrl') || ''
+    const customProxyUrl = appConfig.customProxyUrl || userCustomProxyUrl || ''
     
     console.warn('Audio load error:', e)
     
-    // 优先尝试内置代理服务
-    const isCloudflarePages = window.location.hostname.includes('.pages.dev') || 
-                              window.location.hostname.includes('cloudflare') ||
-                              window.location.hostname.includes('workers.dev')
+    // 检测是否为移动端Chrome浏览器
+    const isMobileChrome = /Android.*Chrome/i.test(navigator.userAgent)
     
-    if (isCloudflarePages) {
-      // Cloudflare Pages：使用 fetch.js 代理获取 base64
+    if (!currentSrc.includes('/api/audio')) {
       try {
-        console.log('Direct URL failed, trying fetch.js proxy')
-        const response = await fetch('/api/fetch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: currentTrack.url })
-        })
+        const proxyUrl = `/api/audio?url=${encodeURIComponent(currentTrack.url)}`
+        console.log('Trying built-in audio proxy:', proxyUrl)
         
-        if (response.ok) {
-          const data = await response.json()
-          if (data.base64 && data.contentType) {
-            // 使用 base64 数据创建 blob URL
-            const binaryString = atob(data.base64)
-            const bytes = new Uint8Array(binaryString.length)
-            for (let i = 0; i < binaryString.length; i++) {
-              bytes[i] = binaryString.charCodeAt(i)
+        // 为移动端Chrome添加额外的重试机制
+        if (isMobileChrome) {
+          // 先尝试直接加载，如果失败再使用代理
+          const directLoad = new Promise((resolve, reject) => {
+            const testAudio = new Audio()
+            testAudio.crossOrigin = 'anonymous'
+            testAudio.preload = 'metadata'
+            
+            const cleanup = () => {
+              testAudio.oncanplay = null
+              testAudio.onerror = null
+              testAudio.src = ''
+              testAudio.load()
             }
-            const blob = new Blob([bytes], { type: data.contentType })
-            const blobUrl = URL.createObjectURL(blob)
-            audio.src = blobUrl
+            
+            testAudio.oncanplay = () => {
+              cleanup()
+              resolve(true)
+            }
+            testAudio.onerror = () => {
+              cleanup()
+              reject(new Error('Direct load failed'))
+            }
+            testAudio.src = currentTrack.url
+            testAudio.load()
+            
+            setTimeout(() => {
+              cleanup()
+              reject(new Error('Direct load timeout'))
+            }, 8000) // 增加超时时间
+          })
+          
+          try {
+            await directLoad
+            audio.src = currentTrack.url
             audio.load()
-            console.log('Successfully loaded audio via fetch.js proxy')
             return
+          } catch (directError) {
+            console.log('Direct load failed, using proxy:', directError.message)
           }
         }
-      } catch (proxyError) {
-        console.error('Fetch.js proxy also failed:', proxyError)
-      }
-    } else {
-      // Docker 部署：尝试流式代理
-      try {
-        console.log('Direct URL failed, trying audio proxy')
-        const proxyUrl = `/api/audio?url=${encodeURIComponent(currentTrack.url)}`
-        audio.src = proxyUrl
-        audio.load()
-        console.log('Successfully loaded audio via audio proxy')
-        return
-      } catch (proxyError) {
-        console.error('Audio proxy also failed:', proxyError)
+        
+        // 使用代理URL，增加重试机制
+        let retryCount = 0
+        const maxRetries = 2
+        
+        while (retryCount < maxRetries) {
+          try {
+            audio.src = proxyUrl
+            audio.load()
+            
+            // 等待音频加载
+            await new Promise((resolve, reject) => {
+              const timeout = setTimeout(() => {
+                reject(new Error('Proxy load timeout'))
+              }, 10000) // 10秒超时
+              
+              const onCanPlay = () => {
+                clearTimeout(timeout)
+                audio.removeEventListener('canplay', onCanPlay)
+                audio.removeEventListener('error', onError)
+                resolve()
+              }
+              
+              const onError = (error) => {
+                clearTimeout(timeout)
+                audio.removeEventListener('canplay', onCanPlay)
+                audio.removeEventListener('error', onError)
+                reject(error)
+              }
+              
+              audio.addEventListener('canplay', onCanPlay)
+              audio.addEventListener('error', onError)
+            })
+            
+            console.log('Successfully loaded via proxy')
+            return
+          } catch (proxyError) {
+            retryCount++
+            console.warn(`Proxy attempt ${retryCount} failed:`, proxyError.message)
+            
+            if (retryCount < maxRetries) {
+              // 等待一段时间后重试
+              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount))
+            }
+          }
+        }
+        
+        throw new Error('All proxy attempts failed')
+      } catch (err1) {
+        console.error('Built-in audio proxy failed:', err1)
       }
     }
     
-    // 最后尝试自定义代理服务（移动端优化）
     if (appConfig.hasCustomProxy && appConfig.customProxyUrl) {
       try {
         console.log('Built-in proxy failed, trying custom proxy via fetch.js')
         
-        // 移动端使用更短的超时时间
-        const timeout = isMobile ? 15000 : 30000
+        const timeout = 30000
         
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), timeout)
@@ -350,11 +373,10 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
         if (response.ok) {
           const data = await response.json()
           if (data.base64 && data.contentType) {
-            // 移动端优化：分块处理大文件，避免内存溢出
-            if (isMobile && data.base64.length > 1000000) { // 1MB
-              console.log('Large file detected on mobile, processing in chunks')
+
+            if (data.base64.length > 1000000) {
+              console.log('Large file detected, processing in chunks')
               
-              // 使用 Web Workers 处理大文件（如果支持）
               if (window.Worker) {
                 try {
                   const blobUrl = await processLargeFileInWorker(data.base64, data.contentType)
@@ -368,7 +390,6 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
               }
             }
             
-            // 标准处理方式
             const binaryString = atob(data.base64)
             const bytes = new Uint8Array(binaryString.length)
             for (let i = 0; i < binaryString.length; i++) {
@@ -376,6 +397,7 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
             }
             const blob = new Blob([bytes], { type: data.contentType })
             const blobUrl = URL.createObjectURL(blob)
+            blobUrlsRef.current.add(blobUrl) // 跟踪Blob URL
             audio.src = blobUrl
             audio.load()
             console.log('Successfully loaded audio via custom proxy')
@@ -386,159 +408,33 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
         }
       } catch (proxyError) {
         if (proxyError.name === 'AbortError') {
-          console.error('Custom proxy timeout (mobile optimized)')
+          console.error('Custom proxy timeout')
         } else {
           console.error('Custom proxy also failed:', proxyError)
         }
       }
     }
     
-    // 如果所有方法都失败，尝试重新加载原始URL
-    console.log('All methods failed, retrying original URL')
-    audio.src = currentTrack.url
-    audio.load()
+    if (!currentSrc.includes(currentTrack.url)) {
+      console.log('All methods failed, retrying original URL')
+      audio.src = currentTrack.url
+      audio.load()
+    }
   }
   
-  // 解析歌曲标题，分离歌曲名和歌手
-  const parseTrackTitle = (title) => {
-    if (!title) return { song: '', artist: '' }
-    // 兼容 "歌名   歌手"（多个空格）或 "歌名 - 歌手" 两种格式
-    const match = title.match(/^(.+?)(?:\s{2,}|\s-\s)(.+)$/)
-    if (match) {
-      return { song: match[1].trim(), artist: match[2].trim() }
-    }
-    return { song: title, artist: '' }
-  }
-  
-  const { song, artist } = parseTrackTitle(currentTrack?.title)
 
-  // 确保在移动端首个播放手势触发时，音频图建立完成；桌面端不使用 WebAudio，避免影响原生音量
-  const ensureAudioGraph = useCallback(() => {
-    try {
-      const audio = audioRef.current
-      if (!audio) return
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      if (!isMobile) return
-      const AC = window.AudioContext || window.webkitAudioContext
-      if (!AC) return
-      let ctx = audioCtxRef.current
-      if (!ctx) {
-        ctx = new AC()
-        audioCtxRef.current = ctx
-      }
-      if (ctx.state === 'suspended') {
-        // 尝试立即恢复，处于用户手势上下文中
-        ctx.resume().catch(() => {})
-      }
-      if (!mediaSourceRef.current) {
-        try { mediaSourceRef.current = ctx.createMediaElementSource(audio) } catch {}
-      }
-      if (!gainRef.current) {
-        try { gainRef.current = ctx.createGain() } catch {}
-      }
-      const source = mediaSourceRef.current
-      const gain = gainRef.current
-      if (source && gain) {
-        try {
-          // 仅在未连接时建立连接，不主动断开，避免打断播放
-          try { source.connect(gain) } catch {}
-          try { gain.connect(ctx.destination) } catch {}
-          // 使用用户当前设置初始化增益，避免卡在 0
-          const target = userMutedRef.current ? 0 : userVolumeRef.current
-          gain.gain.setValueAtTime(Math.max(0, Math.min(1, target)), ctx.currentTime)
-          audioConnectedRef.current = true
-          // 使用 WebAudio 时固定元素音量为 1，由增益控制实际音量
-          try { audio.volume = 1 } catch {}
-        } catch {}
-      }
-    } catch {}
-  }, [])
 
-  // 预加载当前歌曲的封面图片
-  useEffect(() => {
-    if (!currentTrack?.cover) {
-      setCoverLoaded(false)
-      return
-    }
-
-    const preloader = getImagePreloader()
-    
-    // 检查是否已缓存
-    const cachedImage = preloader.getCachedImage(currentTrack.cover)
-    if (cachedImage) {
-      setCoverLoaded(true)
-      return
-    }
-
-    // 预加载封面图片
-    preloader.preloadImage(currentTrack.cover, {
-      crossOrigin: 'anonymous',
-      timeout: 5000
-    }).then(() => {
-      setCoverLoaded(true)
-    }).catch(error => {
-      setCoverLoaded(false)
-    })
-  }, [currentTrack?.cover])
 
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
-    // 仅在移动端且已建立 WebAudio 图时，使用 Gain 控制；桌面端走原生 audio.volume
-    const useWebAudio = !!audioCtxRef.current && !!gainRef.current && audioConnectedRef.current
-    if (useWebAudio) {
-      try { audio.volume = 1 } catch {}
-      const target = muted ? 0 : volume
-      try {
-        const ctx = audioCtxRef.current
-        gainRef.current.gain.cancelScheduledValues(ctx.currentTime)
-        gainRef.current.gain.setValueAtTime(gainRef.current.gain.value, ctx.currentTime)
-        gainRef.current.gain.linearRampToValueAtTime(target, ctx.currentTime + 0.05)
-      } catch {}
-    } else {
-      audio.volume = muted ? 0 : volume
-    }
+
+    audio.volume = muted ? 0 : volume
     userVolumeRef.current = volume
     userMutedRef.current = muted
   }, [volume, muted])
-  // 初始化 WebAudio 管道：MediaElementSource -> Gain -> Destination（仅在用户交互后启用，符合移动端策略）
-  useEffect(() => {
-    if (!hasInteracted) return
-    const audio = audioRef.current
-    if (!audio) return
-    if (audioConnectedRef.current) return
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    if (!isMobile) return
-    try {
-      const AC = window.AudioContext || window.webkitAudioContext
-      if (!AC) return
-      const ctx = audioCtxRef.current || new AC()
-      audioCtxRef.current = ctx
-      // 用户已交互，此时可安全 resume
-      if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => {})
-      }
-      const source = mediaSourceRef.current || ctx.createMediaElementSource(audio)
-      mediaSourceRef.current = source
-      const gain = gainRef.current || ctx.createGain()
-      gainRef.current = gain
-      gain.gain.setValueAtTime(0, ctx.currentTime)
-      source.connect(gain)
-      // 分支分析节点（不接到输出），用于自适应起跳偏移
-      try {
-        const analyser = analyserRef.current || ctx.createAnalyser()
-        analyser.fftSize = 512
-        analyserRef.current = analyser
-        source.connect(analyser)
-      } catch {}
-      gain.connect(ctx.destination)
-      audioConnectedRef.current = true
-      try { audio.volume = 1 } catch {}
-    } catch {}
-  }, [hasInteracted])
 
 
-  // 清理定时器
   useEffect(() => {
     return () => {
       if (seekTimeoutRef.current) {
@@ -547,28 +443,54 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
       if (loadTimeoutRef.current) {
         clearTimeout(loadTimeoutRef.current)
       }
+      
+      // 清理预加载音频
+      if (preloadAudioRef.current) {
+        preloadAudioRef.current.src = ''
+        preloadAudioRef.current.load()
+        preloadAudioRef.current = null
+      }
+      
+      // 清理测试音频
+      if (testAudioRef.current) {
+        testAudioRef.current.src = ''
+        testAudioRef.current.load()
+        testAudioRef.current = null
+      }
+      
+      // 清理所有Blob URLs
+      blobUrlsRef.current.forEach(url => {
+        URL.revokeObjectURL(url)
+      })
+      blobUrlsRef.current.clear()
+      
+      // 清理AudioContext
+      if (audioContextRef.current) {
+        try {
+          audioContextRef.current.close()
+        } catch (error) {
+          console.warn('Failed to close audio context:', error)
+        }
+        audioContextRef.current = null
+      }
     }
   }, [])
 
-  // 键盘快捷键支持
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // 避免在输入框中触发快捷键
+      
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.contentEditable === 'true') {
         return
       }
       
-      // 避免影响系统快捷键（如F5刷新、Ctrl+R等）
       if (e.ctrlKey || e.metaKey || e.altKey) {
         return
       }
       
-      // 避免影响功能键（F1-F12等）
       if (e.key.startsWith('F') && e.key.length <= 3) {
         return
       }
       
-      // 特别处理F5刷新键
       if (e.key === 'F5' || e.code === 'F5') {
         return
       }
@@ -580,24 +502,24 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
           break
         case 'ArrowLeft':
           e.preventDefault()
-          // 上一首
+
           playPrev()
           break
         case 'ArrowRight':
           e.preventDefault()
-          // 下一首
+
           playNext()
           break
         case 'ArrowUp':
           e.preventDefault()
-          // 音量增加
+
           const newVolume = Math.min(1, volume + 0.1)
           setVolume(newVolume)
           setMuted(false)
           break
         case 'ArrowDown':
           e.preventDefault()
-          // 音量减少
+
           const newVolume2 = Math.max(0, volume - 0.1)
           setVolume(newVolume2)
           if (newVolume2 === 0) {
@@ -627,7 +549,6 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
       }
     }
 
-    // 添加键盘事件监听器
     document.addEventListener('keydown', handleKeyDown)
     
     return () => {
@@ -635,98 +556,134 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     }
   }, [volume, muted, shuffle, loopMode, tracks, currentIndex, onChangeIndex, onOpenSettings, isPlaying])
 
-  // 预加载下一首歌曲，优化中国大陆网络环境
   useEffect(() => {
     if (!hasTracks || tracks.length <= 1) return
 
-    // 预加载下一首歌曲
-    const nextIndex = (currentIndex + 1) % tracks.length
-    const nextTrack = tracks[nextIndex]
-    if (nextTrack && nextTrack.url) {
-      // 使用代理URL进行预加载，提高成功率
-      const preloadUrl = getAudioUrl(nextTrack)
-      
-      // 创建预加载音频元素
-      if (preloadAudioRef.current) {
-        preloadAudioRef.current.muted = true
-        preloadAudioRef.current.volume = 0
-        preloadAudioRef.current.src = preloadUrl
-        preloadAudioRef.current.load()
-      } else {
-        const preloadAudio = new Audio()
-        preloadAudio.muted = true
-        preloadAudio.volume = 0
-        preloadAudio.src = preloadUrl
-        preloadAudio.preload = 'metadata' // 只预加载元数据，减少带宽消耗
-        preloadAudio.crossOrigin = 'anonymous'
-        preloadAudio.load()
-        preloadAudioRef.current = preloadAudio
+    // 检测网络状况和浏览器类型
+    const isMobileChrome = /Android.*Chrome/i.test(navigator.userAgent)
+    const preloadDelay = isMobileChrome ? 3000 : 2000 // Chrome需要更长的延迟
+
+    const preloadTimer = setTimeout(() => {
+      const nextIndex = (currentIndex + 1) % tracks.length
+      const nextTrack = tracks[nextIndex]
+      if (nextTrack && nextTrack.url) {
+        const preloadUrl = getAudioUrl(nextTrack)
+
+        if (preloadAudioRef.current) {
+          preloadAudioRef.current.muted = true
+          preloadAudioRef.current.volume = 0
+          preloadAudioRef.current.src = preloadUrl
+          preloadAudioRef.current.preload = 'metadata'
+          preloadAudioRef.current.crossOrigin = 'anonymous'
+          
+          // 为移动端Chrome添加额外的加载事件监听
+          if (isMobileChrome) {
+            preloadAudioRef.current.addEventListener('error', (e) => {
+              console.warn('Preload failed for next track:', e)
+            })
+          }
+          
+          preloadAudioRef.current.load()
+        } else {
+          const preloadAudio = new Audio()
+          preloadAudio.muted = true
+          preloadAudio.volume = 0
+          preloadAudio.src = preloadUrl
+          preloadAudio.preload = 'metadata'
+          preloadAudio.crossOrigin = 'anonymous'
+          
+          // 为移动端Chrome添加额外的加载事件监听
+          if (isMobileChrome) {
+            const errorHandler = (e) => {
+              console.warn('Preload failed for next track:', e)
+              preloadAudio.removeEventListener('error', errorHandler)
+            }
+            preloadAudio.addEventListener('error', errorHandler)
+          }
+          
+          preloadAudio.load()
+          preloadAudioRef.current = preloadAudio
+        }
       }
-    }
+    }, preloadDelay)
+
+    return () => clearTimeout(preloadTimer)
   }, [currentIndex, tracks, hasTracks])
 
-  const formattedTime = (sec) => {
-    const s = Math.floor(sec || 0)
-    const m = Math.floor(s / 60).toString().padStart(2, '0')
-    const r = (s % 60).toString().padStart(2, '0')
-    return `${m}:${r}`
-  }
 
   const play = async () => {
     const audio = audioRef.current
     if (!audio) return Promise.reject(new Error('No audio element'))
     
     try {
-      // 检测移动端
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       
-      // 移动端激进策略：不等待加载完成，直接尝试播放
-      if (isMobile) {
-        // 移动端特殊处理：确保 WebAudio 图与 AudioContext 已建立并恢复
-        ensureAudioGraph()
-        const ctx = audioCtxRef.current
-        if (ctx && ctx.state === 'suspended') {
-          try { await ctx.resume() } catch (e) { }
-        }
-        try { audio.muted = false } catch {}
-        try { audio.volume = 1 } catch {}
-        
-        // 确保音频源已设置
-        if (!audio.src) {
-          audio.src = currentTrack.url
-          audio.load()
-        }
-        
-        // 立即尝试播放，不等待加载
+      if (audio.readyState < 1) {
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            audio.removeEventListener('canplay', onCanPlay)
+            audio.removeEventListener('canplaythrough', onCanPlay)
+            audio.removeEventListener('loadeddata', onCanPlay)
+            audio.removeEventListener('loadstart', onCanPlay)
+
+            if (audio.readyState < 1) {
+              console.warn('Audio still not ready after timeout, attempting to play anyway')
+              // 尝试重新加载音频
+              try {
+                audio.load()
+              } catch (loadError) {
+                console.warn('Failed to reload audio:', loadError)
+              }
+              resolve()
+            } else {
+              resolve()
+            }
+          }, 5000) // 增加超时时间到5秒
+          
+          const onCanPlay = () => {
+            clearTimeout(timeout)
+            audio.removeEventListener('canplay', onCanPlay)
+            audio.removeEventListener('canplaythrough', onCanPlay)
+            audio.removeEventListener('loadeddata', onCanPlay)
+            audio.removeEventListener('loadstart', onCanPlay)
+            resolve()
+          }
+          
+          audio.addEventListener('canplay', onCanPlay)
+          audio.addEventListener('canplaythrough', onCanPlay)
+          audio.addEventListener('loadeddata', onCanPlay)
+          audio.addEventListener('loadstart', onCanPlay)
+        })
+      }
+      
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume()
+      }
+      
+      try {
         await audio.play()
         setIsPlaying(true)
         return Promise.resolve()
-      } else {
-        // 桌面端：使用原有策略
-        if (audio.readyState < 2) {
-          await new Promise((resolve) => {
-            const timeout = setTimeout(() => {
-              audio.removeEventListener('canplay', onCanPlay)
-              resolve() // 超时也继续播放
-            }, 500)
-            
-            const onCanPlay = () => {
-              clearTimeout(timeout)
-              audio.removeEventListener('canplay', onCanPlay)
-              resolve()
-            }
-            audio.addEventListener('canplay', onCanPlay)
-          })
+      } catch (playError) {
+        console.warn('Audio play failed, but continuing:', playError.message)
+        // 如果是网络问题，尝试重新加载
+        if (playError.name === 'NotSupportedError' || playError.name === 'NotAllowedError') {
+          try {
+            audio.load()
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            await audio.play()
+            setIsPlaying(true)
+            return Promise.resolve()
+          } catch (retryError) {
+            console.warn('Retry play failed:', retryError.message)
+          }
         }
-        
-        await audio.play()
-        setIsPlaying(true)
+        setIsPlaying(false)
         return Promise.resolve()
       }
     } catch (e) {
-      // ignore autoplay rejection
+      console.warn('Audio preparation failed:', e.message)
       setIsPlaying(false)
-      return Promise.reject(e)
+      return Promise.resolve()
     }
   }
 
@@ -742,28 +699,43 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     if (isPlaying) {
       pause()
     } else {
-      // 确保音频存在且可播放
+
       const audio = audioRef.current
-      if (!audio) return
-      // 移动端 Chrome 上 readyState 可能尚未到达 2，但仍需触发播放，否则进度不会推进
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      if (isMobile) {
-        play().catch(() => {})
+      if (!audio) {
+        console.warn('No audio element available')
+        return
+      }
+      
+      if (audio.readyState >= 1) {
+        play().catch((error) => {
+          console.warn('Play failed:', error.message)
+
+        })
       } else {
-        if (audio.readyState >= 2) {
-          play().catch(() => {})
-        } else {
-          // 桌面端保持原有策略：在 canplay 后再启动；设置一个兜底超时
-          const onCanPlay = () => {
-            audio.removeEventListener('canplay', onCanPlay)
-            play().catch(() => {})
-          }
-          audio.addEventListener('canplay', onCanPlay)
-          setTimeout(() => {
-            audio.removeEventListener('canplay', onCanPlay)
-            play().catch(() => {})
-          }, 500)
+
+        console.log('Audio not ready, waiting for load...')
+        const onCanPlay = () => {
+          audio.removeEventListener('canplay', onCanPlay)
+          audio.removeEventListener('loadeddata', onCanPlay)
+          audio.removeEventListener('loadstart', onCanPlay)
+          play().catch((error) => {
+            console.warn('Play failed after load:', error.message)
+          })
         }
+        
+        audio.addEventListener('canplay', onCanPlay)
+        audio.addEventListener('loadeddata', onCanPlay)
+        audio.addEventListener('loadstart', onCanPlay)
+        
+        setTimeout(() => {
+          audio.removeEventListener('canplay', onCanPlay)
+          audio.removeEventListener('loadeddata', onCanPlay)
+          audio.removeEventListener('loadstart', onCanPlay)
+
+          play().catch((error) => {
+            console.warn('Play failed after timeout:', error.message)
+          })
+        }, 2000)
       }
     }
   }
@@ -773,7 +745,7 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     if (a && a.duration && !isNaN(a.duration) && a.duration > 0) {
       setDuration(a.duration)
     }
-    // 清除超时状态
+
     setAudioLoadTimeout(false)
     if (loadTimeoutRef.current) {
       clearTimeout(loadTimeoutRef.current)
@@ -782,12 +754,12 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
   }
 
   const onLoadedData = () => {
-    // 一些安卓 Chrome 只在 loadeddata 后才给出有效 duration
+
     const a = audioRef.current
     if (a && a.duration && !isNaN(a.duration) && a.duration > 0) {
       setDuration(a.duration)
     }
-    // 清除超时状态
+
     setAudioLoadTimeout(false)
     if (loadTimeoutRef.current) {
       clearTimeout(loadTimeoutRef.current)
@@ -796,12 +768,12 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
   }
 
   const onCanPlay = () => {
-    // 移动端 Chrome 可能需要在 canplay 时再次尝试获取 duration
+
     const a = audioRef.current
     if (a && a.duration && !isNaN(a.duration) && a.duration > 0) {
       setDuration(a.duration)
     }
-    // 清除超时状态
+
     setAudioLoadTimeout(false)
     if (loadTimeoutRef.current) {
       clearTimeout(loadTimeoutRef.current)
@@ -811,47 +783,37 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
 
 
   const onSeeked = () => {
-    // 音频时间设置完成后的回调
+
     const audio = audioRef.current
     if (audio) {
       setCurrentTime(audio.currentTime || 0)
     }
   }
-  // 简化时间更新机制：使用定时器适配所有平台
+
   useEffect(() => {
     if (!isPlaying) return
     
-    // 统一使用定时器，提供一致的行为，降低频率减少冲突
     const id = setInterval(() => {
       const a = audioRef.current
       if (!a) return
-      // 如果正在seeking，跳过更新以避免闪跳
+
       if (isSeekingRef.current) return
       setCurrentTime(a.currentTime || 0)
       if (!duration && a.duration && !isNaN(a.duration) && a.duration > 0) {
         setDuration(a.duration)
       }
-    }, 500) // 降低到500ms，减少更新频率
+    }, 16)
     
     return () => clearInterval(id)
   }, [isPlaying, duration])
 
-
-
-
-
-  
-
   const seekChange = (e) => {
     const value = Number(e.target.value)
     
-    // 设置seeking标志，防止时间更新干扰
     isSeekingRef.current = true
     
-    // 立即更新UI状态
     setCurrentTime(value)
     
-    // 使用防抖机制避免频繁设置音频时间
     if (seekTimeoutRef.current) {
       clearTimeout(seekTimeoutRef.current)
     }
@@ -860,10 +822,10 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
       const audio = audioRef.current
       if (audio && audio.readyState >= 2) {
         audio.currentTime = value
-        // 重置seeking标志
+
         isSeekingRef.current = false
       }
-    }, 100) // 100ms防抖
+    }, 100)
   }
 
 
@@ -901,6 +863,10 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     const nextIdx = nextIndex()
     if (nextIdx !== currentIndex) {
       onChangeIndex(nextIdx)
+      // 预加载下一首
+      if (cacheEnabled && tracks) {
+        preloadNext(tracks, nextIdx)
+      }
     }
   }
   
@@ -909,6 +875,10 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     const prevIdx = prevIndex()
     if (prevIdx !== currentIndex) {
       onChangeIndex(prevIdx)
+      // 预加载上一首
+      if (cacheEnabled && tracks) {
+        preloadPrev(tracks, prevIdx)
+      }
     }
   }
 
@@ -930,148 +900,81 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     const audio = audioRef.current
     if (!audio) return
     
-    // 检测移动端
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    
-    // 重置进度和时间
     setCurrentTime(0)
     setDuration(0)
     setAudioLoadTimeout(false)
 
-    // 清除之前的超时定时器
     if (loadTimeoutRef.current) {
       clearTimeout(loadTimeoutRef.current)
       loadTimeoutRef.current = null
     }
 
-    // 切歌前确保暂停并回到起点，避免切换瞬间的残留音
-    try { audio.pause() } catch {}
-    try { audio.currentTime = 0 } catch {}
-    // 显式触发加载（src 由 React 更新）
-    audio.load()
+    try { 
+      audio.pause() 
+      audio.currentTime = 0
+
+      audio.removeAttribute('src')
+      audio.load()
+    } catch {}
     
-    // 移动端音频加载超时检测
-    if (isMobile) {
-      loadTimeoutRef.current = setTimeout(() => {
-        setAudioLoadTimeout(true)
-        // 尝试重新加载
-        if (audio.src) {
+    setTimeout(() => {
+      if (audio) {
+        // 检查是否有缓存的音频
+        if (cacheEnabled && currentTrack) {
+          const cachedAudio = getCachedAudio(currentTrack)
+          if (cachedAudio) {
+            audio.src = cachedAudio.src
+            audio.load()
+            console.log('使用缓存的音频:', currentTrack.title)
+          } else {
+            audio.src = getAudioUrl(currentTrack)
+            audio.load()
+            // 预加载当前音频
+            preloadAudio(currentTrack, 'high')
+          }
+        } else {
+          audio.src = getAudioUrl(currentTrack)
           audio.load()
         }
-      }, 10000) // 10秒超时
-    }
+      }
+    }, 50)
     
     if (hasInteracted && isPlaying) {
-      if (isMobile) {
-        // 移动端：等到 loadeddata/canplay 任一触发后再播，降噪；300ms 兜底
-        let done = false
-        const tryPlay = async () => {
-          if (done) return
-          done = true
-          // 跳过可能的编码延迟/静音前导 30ms
-          try { audio.currentTime = 0 } catch {}
-          // 以 Gain=0 启动，随后 200ms 线性淡入至目标音量
-          try { audio.muted = false } catch {}
-          const ctx = audioCtxRef.current
-          const gain = gainRef.current
-          const analyser = analyserRef.current
-          const targetVol = userMutedRef.current ? 0 : userVolumeRef.current
-          if (ctx && gain) {
-            try {
-              gain.gain.cancelScheduledValues(ctx.currentTime)
-              gain.gain.setValueAtTime(0, ctx.currentTime)
-            } catch {}
-          } else {
-            try { audio.volume = 0 } catch {}
-          }
-          // 启动播放（静音）以便分析
-          await play().catch(() => {})
-          // 自适应选择起跳偏移：在静音状态下快速探测RMS，选取较安静的起点
-          const pickOffset = async () => {
-            if (!analyser) return 0.03
-            const candidates = [0.02, 0.03, 0.04, 0.05]
-            const data = new Uint8Array(512)
-            for (let off of candidates) {
-              try { audio.currentTime = off } catch {}
-              // 稍等缓冲
-              await new Promise(r => setTimeout(r, 60))
-              let rmsSum = 0
-              const samples = 3
-              for (let i = 0; i < samples; i++) {
-                analyser.getByteTimeDomainData(data)
-                let acc = 0
-                for (let j = 0; j < data.length; j++) {
-                  const v = (data[j] - 128) / 128
-                  acc += v * v
-                }
-                const rms = Math.sqrt(acc / data.length)
-                rmsSum += rms
-                await new Promise(r => setTimeout(r, 15))
-              }
-              const avg = rmsSum / samples
-              // 阈值经验值：< 0.02 视为足够安静
-              if (avg < 0.02) return off
-            }
-            return 0.03
-          }
-          const chosen = await pickOffset()
-          try { audio.currentTime = chosen } catch {}
-          // 开始淡入
-          ;(async () => {
-            if (targetVol <= 0) return
-            if (ctx && gain) {
-              try {
-                gain.gain.cancelScheduledValues(ctx.currentTime)
-                gain.gain.setValueAtTime(0, ctx.currentTime)
-                gain.gain.linearRampToValueAtTime(targetVol, ctx.currentTime + 0.2)
-              } catch {}
-            } else {
-              // 无 WebAudio 时退化为步进淡入
-              const steps = 10
-              const step = 20
-              let i = 0
-              const tick = () => {
-                i++
-                const v = Math.min(targetVol, (i / steps) * targetVol)
-                try { audio.volume = v } catch {}
-                if (i < steps) setTimeout(tick, step)
-              }
-              setTimeout(tick, step)
-            }
-          })().catch(() => {})
-        }
-        const onLoaded = () => { audio.removeEventListener('loadeddata', onLoaded); audio.removeEventListener('canplay', onLoaded); tryPlay() }
-        audio.addEventListener('loadeddata', onLoaded)
-        audio.addEventListener('canplay', onLoaded)
-        setTimeout(() => { tryPlay().catch(() => {}) }, 300)
-      } else {
-        // 桌面端：根据音频准备状态决定播放时机
-        if (audio.readyState >= 2) {
-          // 音频已准备好，立即播放
+
+      const onCanPlay = () => {
+        audio.removeEventListener('canplay', onCanPlay)
+        audio.removeEventListener('canplaythrough', onCanPlay)
+        audio.removeEventListener('loadeddata', onCanPlay)
+
+        setTimeout(() => {
           play().catch(() => {})
-        } else {
-          // 音频未准备好，等待加载完成
-          const onCanPlay = () => {
-            audio.removeEventListener('canplay', onCanPlay)
-            play().catch(() => {})
-          }
-          audio.addEventListener('canplay', onCanPlay)
-          
-          // 设置超时，避免无限等待
-          setTimeout(() => {
-            audio.removeEventListener('canplay', onCanPlay)
-            play().catch(() => {})
-          }, 500)
-        }
+        }, 100)
       }
+      
+      audio.addEventListener('canplay', onCanPlay)
+      audio.addEventListener('canplaythrough', onCanPlay)
+      audio.addEventListener('loadeddata', onCanPlay)
+      
+      setTimeout(() => {
+        audio.removeEventListener('canplay', onCanPlay)
+        audio.removeEventListener('canplaythrough', onCanPlay)
+        audio.removeEventListener('loadeddata', onCanPlay)
+        play().catch(() => {})
+      }, 2000)
     } else {
-      // 非播放状态：确保停止播放
+
       audio.pause()
       setIsPlaying(false)
     }
   }, [currentIndex])
 
-  // 来自列表点击的强制播放信号
+  // 智能预加载
+  useEffect(() => {
+    if (cacheEnabled && tracks && tracks.length > 0) {
+      smartPreload(tracks, currentIndex)
+    }
+  }, [currentIndex, tracks, cacheEnabled, smartPreload])
+
   useEffect(() => {
     if (!forcePlayKey) return
     if (!currentTrack) return
@@ -1079,7 +982,6 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     setHasInteracted(true)
     setIsPlaying(true)
     
-    // 统一延迟播放，避免与歌曲切换冲突
     setTimeout(() => {
       play()
     }, 100)
@@ -1115,81 +1017,58 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onError={handleAudioError}
-        preload="metadata"
+        preload="auto"
         crossOrigin="anonymous"
         playsInline
         webkit-playsinline="true"
         controls={false}
         muted={false}
         loop={false}
+        x-webkit-airplay="allow"
+        x-webkit-playsinline="true"
+
+        style={{ 
+          position: 'absolute',
+          top: '-9999px',
+          left: '-9999px',
+          opacity: 0,
+          pointerEvents: 'none'
+        }}
       />
 
        <div className="top">
-         <div className={`art-lg ${isPlaying ? 'playing' : ''}`} aria-hidden="true">
-           <div className={`disc ${isPlaying ? 'playing' : ''}`}>
-            {currentTrack.cover ? (
-              <img 
-                src={currentTrack.cover} 
-                alt="封面" 
-                loading={coverLoaded ? "eager" : "lazy"}
-                style={{ 
-                  opacity: coverLoaded ? 1 : 0.3,
-                  transition: 'opacity 0.3s ease'
-                }}
-                onLoad={() => setCoverLoaded(true)}
-                onError={() => setCoverLoaded(false)}
-              />
-            ) : (
-              <div className="art-fallback" />
-            )}
-          </div>
-        </div>
-        <div className="meta">
-          <h2 className="track-title">
-            {artist ? `${song} - ${artist}` : song}
-          </h2>
-          <p className="track-sub">&nbsp;</p>
-          <div className="controls-row">
-            <button className="icon-btn" onClick={playPrev} aria-label="上一曲"><Icon name="prev" /></button>
-            <button className="icon-btn icon-btn-primary" onClick={togglePlay} aria-label="播放/暂停">{isPlaying ? <Icon name="pause" /> : <Icon name="play" />}</button>
-            <button className="icon-btn" onClick={playNext} aria-label="下一曲"><Icon name="next" /></button>
-            <button className="icon-btn" onClick={() => setShuffle(s => !s)} aria-label="随机列表播放" aria-pressed={shuffle}><Icon name={shuffle ? 'shuffle_on' : 'shuffle'} /></button>
-            <button className="icon-btn" onClick={toggleLoopMode} aria-label="单曲循环" aria-pressed={loopMode !== 'off'}><Icon name={loopMode !== 'off' ? 'repeat_on' : 'repeat'} /></button>
-            <div className="vol">
-              <button className="icon-btn" onClick={toggleMute} aria-label="静音"><Icon name={muted ? 'volume_muted' : 'volume'} /></button>
-              <input 
-                className="vol-line" 
-                type="range" 
-                min="0" 
-                max="1" 
-                step="0.01" 
-                value={muted ? 0 : volume} 
-                onChange={changeVolume} 
-                aria-label="音量"
-                style={{ '--p': `${(muted ? 0 : volume) * 100}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+         <CoverArt currentTrack={currentTrack} isPlaying={isPlaying} />
+         <div className="meta">
+           <h2 className="track-title">
+             {artist ? `${song} - ${artist}` : song}
+           </h2>
+           <p className="track-sub">&nbsp;</p>
+           <Controls 
+             isPlaying={isPlaying}
+             shuffle={shuffle}
+             loopMode={loopMode}
+             volume={volume}
+             muted={muted}
+             onTogglePlay={togglePlay}
+             onPlayPrev={playPrev}
+             onPlayNext={playNext}
+             onToggleShuffle={() => setShuffle(s => !s)}
+             onToggleLoop={toggleLoopMode}
+             onVolumeChange={changeVolume}
+             onToggleMute={toggleMute}
+           />
+         </div>
+       </div>
 
-      <div className="progress-under">
-        <span className="time-left">{formattedTime(currentTime)}</span>
-        <input
-          className="progress-line"
-          type="range"
-          min="0"
-          max={duration || 0}
-          step="0.1"
-          value={currentTime}
-          onChange={seekChange}
-          aria-label="播放进度"
-          style={{ '--p': `${duration ? (currentTime / duration) * 100 : 0}%` }}
-        />
-        <span className="time-right">{formattedTime(duration)}</span>
-      </div>
+      <Progress 
+        currentTime={currentTime}
+        duration={duration}
+        onSeekChange={seekChange}
+      />
     </div>
   )
 }
+
+
 
 
