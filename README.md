@@ -1,15 +1,11 @@
 # 🎵 Music Player
 
-## 一个现代化的筒约音乐播放器，支持在线播放，歌单管理，MV播放等功能，采用 React + Vite 构建，支持Cloudflare Pages和Docker 部署。
+## 一个现代化的筒约音乐播放器，支持在线播放，歌单管理，MV播放等功能，采用 React + Vite 构建，支持多平台部署。
 
 <p align="center">
   <img src="./zxlwq.webp" alt="logo" />
 </p>
 
-<p align="center">
-  <a href="https://opensource.org/licenses/MIT">
-    <img src="https://img.shields.io/badge/License-MIT-lightgrey.svg?logo=open-source-initiative&logoColor=lightgrey" alt="License: MIT">
-  </a>
   <a href="https://reactjs.org/">
     <img src="https://img.shields.io/badge/React-18.3.1-lightblue.svg?logo=react&logoColor=61DAFB" alt="React">
   </a>
@@ -21,6 +17,9 @@
   </a>
   <a href="https://pages.cloudflare.com/">
     <img src="https://img.shields.io/badge/Cloudflare-Pages-orange.svg?logo=cloudflare&logoColor=F38020" alt="Cloudflare Pages">
+  </a>
+  <a href="https://vercel.com/">
+    <img src="https://img.shields.io/badge/Vercel-Deploy-black?logo=vercel&logoColor=FFFFFF" alt="Vercel">
   </a>
   <a href="https://github.com/zxlwq/music">
     <img src="https://img.shields.io/badge/GitHub-Repo-black.svg?logo=github&logoColor=white" alt="GitHub Repo">
@@ -57,6 +56,17 @@
 2. 框架预设：`React (Vite)`
 3. 添加环境变量
 4. 部署完成
+5. 绑定自定义名
+
+### Vercel
+
+1. 连接 GitHub 仓库到 Vercel
+2. 添加环境变量
+3. 部署完成
+4. 绑定自定义名
+
+### Docker (Hugging Face Spaces) 
+.github/workflows/music-api.yml + music.py
 
 ## ⚙️ 配置说明
 
