@@ -71,6 +71,8 @@ const VScroll = React.forwardRef(function VScroll({
       className={`virtual-scroll-container ${className}`}
       style={{
         height: containerHeight,
+        minHeight: '200px',
+        contain: 'layout style',
         ...style
       }}
       onScroll={enhancedHandleScroll}
