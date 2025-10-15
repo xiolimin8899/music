@@ -431,6 +431,11 @@ h1 {
   cursor: pointer;
   border-radius: 50%;
   transition: color .15s ease, background .15s ease, transform .2s ease;
+  z-index: 1000;
+  pointer-events: auto;
+  user-select: none;
+  contain: none;
+  will-change: auto;
 }
 .settings-icon:hover { color: #ff8fb3; background: rgba(255, 255, 255, .08); transform: rotate(18deg); }
 
