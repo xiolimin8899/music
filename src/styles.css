@@ -435,14 +435,15 @@ h1 {
   padding: 8px;
   cursor: pointer;
   border-radius: 50%;
-  transition: color .1s ease;
+  transition: background .15s ease, transform .2s ease;
   z-index: 1000;
   pointer-events: auto;
   user-select: none;
   contain: none;
 }
 .settings-icon:hover { 
-  color: #ff8fb3; 
+  background: rgba(255, 255, 255, .08); 
+  transform: rotate(18deg); 
 }
 
 .now-playing {
