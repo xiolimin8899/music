@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import CoverArt from './CoverArt'
 import Controls from './Controls'
 import Progress from './Progress'
@@ -992,14 +992,6 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     setLoopMode(LOOP_MODES[idx])
   }
 
-  // 优化的设置按钮点击处理器
-  const handleSettingsClick = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (onOpenSettings) {
-      onOpenSettings()
-    }
-  }, [onOpenSettings])
 
   if (!hasTracks || !currentTrack) {
     return (
@@ -1014,7 +1006,7 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
 
   return (
     <div className="player player-card">
-      <button className="settings-icon" aria-label="打开设置" onClick={handleSettingsClick}>⚙️</button>
+      <button className="settings-icon" aria-label="打开设置" onClick={onOpenSettings}>⚙️</button>
       <audio
         ref={audioRef}
         src={getAudioUrl(currentTrack)}
