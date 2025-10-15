@@ -1085,6 +1085,15 @@ input[type="checkbox"]:checked {
   border-color: #10b981;
 }
 
+/* 去除勾选状态下的悬停效果 */
+input[type="checkbox"]:checked:hover {
+  background: #10b981 !important;
+  border-color: #10b981 !important;
+  filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 input[type="checkbox"]:checked::after {
   content: '✓';
   position: absolute;
