@@ -11,6 +11,8 @@ class AudioCacheService {
     this.cacheSize = 0 // 当前缓存大小
     this.isPreloading = false // 是否正在预加载
     this.preloadTimeout = null // 预加载超时
+    this.preloadStartTime = 0 // 预加载开始时间
+    this.preloadCount = 0 // 预加载计数
   }
 
   /**
@@ -209,7 +211,9 @@ class AudioCacheService {
       cacheSize: this.cacheSize,
       maxCacheSize: this.maxCacheSize,
       preloadQueueLength: this.preloadQueue.length,
-      isPreloading: this.isPreloading
+      isPreloading: this.isPreloading,
+      preloadCount: this.preloadCount,
+      preloadStartTime: this.preloadStartTime
     }
   }
 
@@ -255,16 +259,27 @@ class AudioCacheService {
     if (this.isPreloading || this.preloadQueue.length === 0) return
     
     this.isPreloading = true
+    this.preloadStartTime = Date.now()
+    this.preloadCount = 0
     
     try {
       while (this.preloadQueue.length > 0 && this.cacheSize < this.maxCacheSize) {
         const { track } = this.preloadQueue.shift()
+        this.preloadCount++
         await this.cacheAudio(track)
       }
     } catch (error) {
       console.warn('预加载失败:', error)
     } finally {
-      this.isPreloading = false
+      // 延迟重置预加载状态，让用户能看到预加载过程
+      const preloadDuration = Date.now() - this.preloadStartTime
+      const minDisplayTime = 1000 // 最少显示1秒
+      const remainingTime = Math.max(0, minDisplayTime - preloadDuration)
+      
+      setTimeout(() => {
+        this.isPreloading = false
+        this.preloadCount = 0
+      }, remainingTime)
     }
   }
 
