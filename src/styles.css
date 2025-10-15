@@ -435,9 +435,19 @@ h1 {
   pointer-events: auto;
   user-select: none;
   contain: none;
-  will-change: auto;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
-.settings-icon:hover { color: #ff8fb3; background: rgba(255, 255, 255, .08); transform: rotate(18deg); }
+.settings-icon:hover { 
+  color: #ff8fb3; 
+  background: rgba(255, 255, 255, .08); 
+  transform: translateZ(0) rotate(18deg); 
+}
+.settings-icon:active {
+  transform: translateZ(0) rotate(18deg) scale(0.95);
+}
 
 .now-playing {
   display: flex;
