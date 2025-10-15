@@ -642,12 +642,7 @@ footer {
   transform: translateZ(0);
   will-change: auto;
   position: relative;
-  overflow: visible;
-  background: rgba(21, 21, 24, 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  overflow: hidden;
 }
 
 footer a {
@@ -903,9 +898,12 @@ footer a {
     transform: translateY(-50%);
   }
 
-  /* 移动端页脚样式优化 */
+  /* 页脚样式 */
   footer { 
-    position: relative; 
+    position: fixed; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
     margin-top: 0; 
     text-align: center; 
     margin-bottom: 0; 
@@ -917,22 +915,12 @@ footer a {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(21, 21, 24, 0.1);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
   footer div { 
     margin-top: 0; 
     line-height: 0; 
   }
-  footer div a { 
-    display: inline-block; 
-  }
-  footer div img { 
-    display: block; 
-  }
-  /* 让虚拟播放列表容器直接贴到徽章，无间距 */
+  /* 让虚拟播放列表容器直接贴到页脚，无间距 */
   .container { 
     padding-bottom: 0; 
     contain: layout style;
