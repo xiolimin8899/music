@@ -419,7 +419,6 @@ h1 {
   font-size: 22px;
   padding: 8px;
   cursor: pointer;
-  border-radius: 50%;
   transition: background .15s ease, transform .2s ease;
   z-index: 1000;
   pointer-events: auto;
