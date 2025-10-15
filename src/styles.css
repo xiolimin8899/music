@@ -23,6 +23,10 @@
 }
 
 .modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: min(92vw, 420px);
   background: rgba(21, 21, 24, .35);
   backdrop-filter: blur(14px);
@@ -33,6 +37,7 @@
   padding: 16px;
   content-visibility: auto;
   contain-intrinsic-size: 320px 240px;
+  z-index: 1000;
 }
 
 .modal-title { margin: 0 0 8px 0; font-size: 18px; font-weight: 700; }
