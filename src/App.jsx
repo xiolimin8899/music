@@ -400,7 +400,8 @@ export default function App() {
         marginTop: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined, 
         paddingBottom: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined,
         minHeight: '40px',
-        contain: 'layout style'
+        contain: 'layout style',
+        overflow: 'visible'
       }}>
         <div style={{ 
           textAlign: 'center', 
@@ -433,7 +434,9 @@ export default function App() {
                     opacity: badgeCache ? 1 : 0.7,
                     height: '20px',
                     width: 'auto',
-                    display: 'block'
+                    display: 'block',
+                    maxWidth: '100%',
+                    objectFit: 'contain'
                   }}
                 />
               </a>
