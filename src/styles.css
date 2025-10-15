@@ -26,7 +26,7 @@
 }
 
 .modal-title { margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: white; }
-.modal-body { color: var(--sub); margin-bottom: 12px; max-height: 64vh; overflow-y: auto; margin-right: -16px; padding-right: 16px; }
+.modal-body { color: white; margin-bottom: 12px; max-height: 64vh; overflow-y: auto; margin-right: -16px; padding-right: 16px; }
 .modal-body::-webkit-scrollbar { width: 10px; }
 .modal-body::-webkit-scrollbar-track { background: transparent; }
 .modal-body::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,.25); border-radius: 8px; }
@@ -40,7 +40,7 @@
 .btn-ghost:hover { background: rgba(255,255,255,.05); }
 .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.form-label { font-size: 12px; color: var(--sub); }
+.form-label { font-size: 12px; color: white; }
 .form-input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--muted); background: rgba(21,21,24,.45); color: var(--fg); outline: none; font-family: inherit; }
 .form-input:focus { border-color: #6b7280; }
 select.form-input { background: rgba(21,21,24,.45); color: var(--fg); appearance: none; -webkit-appearance: none; border-radius: 10px; border: 1px solid var(--muted); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding-right: 28px; font-family: inherit; }
@@ -49,8 +49,8 @@ select.form-input:focus { border-color: #6b7280; }
 .form-actions { display: flex; justify-content: center; }
 .hr { border: none; height: 1px; background: var(--muted); margin: 12px 0; opacity: .8; }
 .section-title { margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: white; }
-.form-tip { font-size: 12px; color: var(--sub); margin-top: 4px; }
-.btn-danger { background: linear-gradient(180deg, #ef4444, #b91c1c); border: 1px solid #ef4444; color: #fff; padding: 10px 16px; border-radius: 999px; box-shadow: 0 6px 14px rgba(239,68,68,.35); cursor: pointer; }
+.form-tip { font-size: 12px; color: white; margin-top: 4px; }
+.btn-danger { background: linear-gradient(180deg, #ef4444, #b91c1c); border: 1px solid #ef4444; color: #fff; padding: 10px 16px; border-radius: 8px; box-shadow: 0 6px 14px rgba(239,68,68,.35); cursor: pointer; }
 .btn-danger:hover { filter: brightness(1.05); }
 .btn-danger:active { transform: translateY(1px); }
 .playlist-container {
@@ -967,7 +967,7 @@ footer a {
 
 .status-item .label {
   font-size: 12px;
-  color: var(--sub);
+  color: white;
 }
 
 .status-item .value {
@@ -1002,7 +1002,7 @@ footer a {
   align-items: center;
   margin-bottom: 8px;
   font-size: 12px;
-  color: var(--sub);
+  color: white;
 }
 
 .usage-bar {
@@ -1039,6 +1039,70 @@ footer a {
 
 .cache-actions button {
   flex: 1;
+}
+
+/* 去除复选框的悬停效果 */
+input[type="checkbox"]:hover {
+  cursor: pointer;
+}
+
+input[type="checkbox"]:hover:not(:disabled) {
+  filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+  background: none !important;
+}
+
+/* 确保复选框标签没有悬停效果 */
+.form-label:hover {
+  background: none !important;
+  color: white !important;
+}
+
+/* 去除复选框容器的悬停效果 */
+.form-group:hover {
+  background: none !important;
+}
+
+/* 自定义复选框样式 - 勾选状态为绿色 */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #6b7280;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+input[type="checkbox"]:checked {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type="checkbox"]:disabled:checked {
+  background: #6b7280;
+  border-color: #6b7280;
 }
 
 
