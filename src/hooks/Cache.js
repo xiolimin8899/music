@@ -198,23 +198,8 @@ export function useAudioCacheConfig() {
     localStorage.setItem('audioCache.config', JSON.stringify(updatedConfig))
   }, [config])
 
-  // 重置配置
-  const resetConfig = useCallback(() => {
-    const defaultConfig = {
-      enabled: true,
-      maxCacheSize: 50,
-      preloadCount: 3,
-      preloadDelay: 1000,
-      autoCleanup: true,
-      cleanupInterval: 300000
-    }
-    setConfig(defaultConfig)
-    localStorage.setItem('audioCache.config', JSON.stringify(defaultConfig))
-  }, [])
-
   return {
     config,
-    updateConfig,
-    resetConfig
+    updateConfig
   }
 }
