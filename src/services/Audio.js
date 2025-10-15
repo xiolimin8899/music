@@ -271,10 +271,10 @@ class AudioCacheService {
     } catch (error) {
       console.warn('预加载失败:', error)
     } finally {
-      // 延迟重置预加载状态，让用户能看到预加载过程
+      // 确保预加载状态至少显示3秒，让用户能看到预加载过程
       const preloadDuration = Date.now() - this.preloadStartTime
-      const minDisplayTime = 1000 // 最少显示1秒
-      const remainingTime = Math.max(0, minDisplayTime - preloadDuration)
+      const minDisplayTime = 3000 // 最少显示3秒
+      const remainingTime = Math.max(minDisplayTime, minDisplayTime - preloadDuration)
       
       setTimeout(() => {
         this.isPreloading = false
