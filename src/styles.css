@@ -36,7 +36,7 @@
 .proxy-result-pre::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,.25); border-radius: 8px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .modal-actions .btn-ghost { padding: 10px 18px; font-size: 14px; border-radius: 12px; }
-.modal-actions .btn-danger { padding: 10px 18px; font-size: 14px; border-radius: 8px; }
+.modal-actions .btn-danger { width: 100%; }
 .btn-ghost { background: transparent; border: 1px solid var(--muted); color: var(--fg); padding: 8px 12px; border-radius: 10px; cursor: pointer; }
 .btn-ghost:hover { background: rgba(255,255,255,.05); }
 .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
