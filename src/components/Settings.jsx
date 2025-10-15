@@ -173,8 +173,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
 
   return (
     <>
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <h3 className="modal-title" style={{ textAlign: 'center' }}>设置</h3>
         <div className="modal-body">
           <div className="section-title">添加歌曲</div>
@@ -541,7 +540,6 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
         <div className="modal-actions">
           <button type="button" className="btn-danger" onClick={onClose}>关闭</button>
         </div>
-      </div>
     </div>
     
     {/* 音频缓存管理 */}
