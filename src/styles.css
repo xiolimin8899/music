@@ -430,23 +430,14 @@ h1 {
   padding: 8px;
   cursor: pointer;
   border-radius: 50%;
-  transition: color .15s ease, background .15s ease, transform .2s ease;
+  transition: color .1s ease;
   z-index: 1000;
   pointer-events: auto;
   user-select: none;
   contain: none;
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 .settings-icon:hover { 
   color: #ff8fb3; 
-  background: rgba(255, 255, 255, .08); 
-  transform: translateZ(0) rotate(18deg); 
-}
-.settings-icon:active {
-  transform: translateZ(0) rotate(18deg) scale(0.95);
 }
 
 .now-playing {
