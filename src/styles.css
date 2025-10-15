@@ -419,6 +419,7 @@ h1 {
   font-size: 22px;
   padding: 8px;
   cursor: pointer;
+  border-radius: 50%;
   transition: background .15s ease, transform .2s ease;
   z-index: 1000;
   pointer-events: auto;
@@ -447,7 +448,6 @@ h1 {
 }
 .settings-icon:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
 }
 
 .now-playing {
