@@ -425,13 +425,18 @@ h1 {
   pointer-events: auto;
   user-select: none;
   contain: none;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+  -webkit-tap-highlight-color: transparent !important;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   touch-action: manipulation;
   outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-clip: padding-box;
 }
 .settings-icon:hover { 
   background: rgba(255, 255, 255, .08); 
@@ -925,6 +930,23 @@ footer a {
   .container { 
     padding-bottom: 0; 
     contain: layout style;
+  }
+  
+  /* 移动端设置按钮触摸反馈修复 */
+  .settings-icon {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    touch-action: manipulation !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background-clip: padding-box !important;
+    -webkit-background-clip: padding-box !important;
   }
 }
 
