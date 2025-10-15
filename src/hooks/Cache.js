@@ -180,7 +180,7 @@ export function useAudioCacheConfig() {
       preloadCount: 3,
       preloadDelay: 1000,
       autoCleanup: true,
-      cleanupInterval: 300000 // 5分钟
+      cleanupInterval: 86400000 // 1天 (24 * 60 * 60 * 1000)
     }
     
     try {
