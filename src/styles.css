@@ -907,7 +907,7 @@ footer a {
     margin-top: 0; 
     text-align: center; 
     margin-bottom: 0; 
-    padding-bottom: 0; 
+    padding-bottom: 8px; 
     z-index: 50; 
     contain: layout style;
     will-change: transform;
@@ -915,6 +915,9 @@ footer a {
     display: flex;
     align-items: center;
     justify-content: center;
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   footer div { 
     margin-top: 0; 
@@ -925,6 +928,9 @@ footer a {
   }
   footer div img { 
     display: block; 
+    height: 20px;
+    width: auto;
+    max-width: none;
   }
   /* 让虚拟播放列表容器直接贴到徽章，无间距 */
   .container { 
