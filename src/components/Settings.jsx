@@ -555,7 +555,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               <div className="status-item">
                 <span className="label">预加载状态:</span>
                 <span className={`value ${cacheStats.isPreloading ? 'loading' : 'idle'}`}>
-                  {cacheStats.isPreloading ? '进行中' : '空闲'}
+                  {cacheStats.isPreloading ? `进行中 (${cacheStats.preloadCount || 0})` : '空闲'}
                 </span>
               </div>
             </div>
