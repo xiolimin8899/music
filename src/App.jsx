@@ -91,7 +91,7 @@ export default function App() {
         </div>
       </div>
       <div className="search-bar" style={{ height: '44px', minHeight: '44px' }}>
-        <input className="search-input" placeholder="搜索音乐..." disabled id="search-loading" name="search-loading" />
+        <input className="search-input" placeholder="搜索音乐..." disabled id="search-loading" name="search-loading" aria-label="搜索音乐（加载中）" />
       </div>
       <div className="virtual-playlist" style={{ height: '400px', minHeight: '400px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -119,7 +119,7 @@ export default function App() {
       </Suspense>
       <Suspense fallback={
         <div className="search-bar" style={{ height: '44px', minHeight: '44px' }}>
-          <input className="search-input" placeholder="搜索音乐..." disabled id="search-fallback" name="search-fallback" />
+          <input className="search-input" placeholder="搜索音乐..." disabled id="search-fallback" name="search-fallback" aria-label="搜索音乐（加载中）" />
         </div>
       }>
         <SearchBar value={query} onChange={setQuery} />
