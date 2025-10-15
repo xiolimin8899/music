@@ -824,14 +824,14 @@ footer a {
     min-height: 180px;
   }
   .player-card { padding: 14px 14px 12px; }
-  .top { grid-template-columns: 80px 1fr; gap: 12px; }
+  .top { grid-template-columns: 100px 1fr; gap: 12px; }
   .art-lg { 
-    width: 80px; 
-    height: 80px; 
-    min-width: 80px;
-    min-height: 80px;
-    max-width: 80px;
-    max-height: 80px;
+    width: 100px; 
+    height: 100px; 
+    min-width: 100px;
+    min-height: 100px;
+    max-width: 100px;
+    max-height: 100px;
   }
   .meta { margin-left: 0; text-align: center; }
   .track-title { font-size: 16px; }
