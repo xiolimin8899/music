@@ -16,8 +16,6 @@ export const useAppState = () => {
   const [progressTitle, setProgressTitle] = useState('')
   const [progressMessage, setProgressMessage] = useState('')
   const [progressValue, setProgressValue] = useState(0)
-  const [showBadges, setShowBadges] = useState(false)
-  const [badgeCache, setBadgeCache] = useState(null)
 
   return {
     // 基础状态
@@ -43,8 +41,5 @@ export const useAppState = () => {
     progressMessage, setProgressMessage,
     progressValue, setProgressValue,
     
-    // 徽章相关
-    showBadges, setShowBadges,
-    badgeCache, setBadgeCache
   }
 }
