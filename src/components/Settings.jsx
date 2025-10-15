@@ -178,7 +178,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
         <div className="modal-body">
           <div className="section-title">添加歌曲</div>
           <div className="form-group">
-            <label className="form-label">从本地上传</label>
+            <label className="form-label" htmlFor="local-file-input">从本地上传</label>
             <input
               className="form-input"
               type="file"
@@ -248,17 +248,17 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           </div>
           <div className="form-group">
             <div className="section-title">URL上传</div>
-            <label className="form-label">歌曲URL</label>
+            <label className="form-label" htmlFor="song-url">歌曲URL</label>
             <input className="form-input" type="url" placeholder="https://player.zxlwq.dpdns.org.mp3" value={songUrl} onChange={(e) => setSongUrl(e.target.value)} id="song-url" name="song-url" />
           </div>
           <div className="form-row">
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-              <label className="form-label">歌名-歌手</label>
+              <label className="form-label" htmlFor="song-title">歌名-歌手</label>
               <input className="form-input" type="text" placeholder="歌名-歌手" value={songTitle} onChange={(e) => setSongTitle(e.target.value)} id="song-title" name="song-title" />
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">MV 链接（可选）</label>
+            <label className="form-label" htmlFor="song-mv-url">MV 链接（可选）</label>
             <input className="form-input" type="url" placeholder="https://example.com/video" value={songMvUrl} onChange={(e) => setSongMvUrl(e.target.value)} id="song-mv-url" name="song-mv-url" />
           </div>
           <div className="form-actions" style={{ gap: 10 }}>
@@ -268,11 +268,11 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           <hr className="hr" />
           <div className="section-title">导入GitHub仓库歌曲</div>
           <div className="form-group">
-            <label className="form-label">GIT_REPO</label>
+            <label className="form-label" htmlFor="git-repo">GIT_REPO</label>
             <input className="form-input" type="text" placeholder="用户名/仓库名" value={gitRepo} onChange={(e) => setGitRepo(e.target.value)} id="git-repo" name="git-repo" />
           </div>
           <div className="form-group">
-            <label className="form-label">GIT_TOKEN</label>
+            <label className="form-label" htmlFor="git-token">GIT_TOKEN</label>
             <input
               className="form-input"
               type="password"
@@ -288,11 +288,11 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             />
           </div>
           <div className="form-group">
-            <label className="form-label">GIT_BRANCH（可选）</label>
+            <label className="form-label" htmlFor="git-branch">GIT_BRANCH（可选）</label>
             <input className="form-input" type="text" placeholder="main" value={gitBranch} onChange={(e) => setGitBranch(e.target.value)} id="git-branch" name="git-branch" />
           </div>
           <div className="form-group">
-            <label className="form-label">导入路径</label>
+            <label className="form-label" htmlFor="git-path">导入路径</label>
             <input className="form-input" type="text" placeholder="public/music 或 music 或 ." value={gitPath} onChange={(e) => setGitPath(e.target.value)} id="git-path" name="git-path" />
           </div>
           <div className="form-actions">
@@ -301,7 +301,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           <hr className="hr" />
           <div className="section-title">导入API歌单</div>
           <div className="form-group">
-            <label className="form-label">API链接</label>
+            <label className="form-label" htmlFor="api-url">API链接</label>
             <input className="form-input" type="url" placeholder="https://player.zxlwq.dpdns.org" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} id="api-url" name="api-url" />
           </div>
           <div className="form-actions">
@@ -318,7 +318,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           <hr className="hr" />
           <div className="section-title">美化设置</div>
           <div className="form-group">
-            <label className="form-label">字体预设</label>
+            <label className="form-label" htmlFor="font-preset">字体预设</label>
             <select
               className="form-input"
               value={fontPreset}
@@ -339,7 +339,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             
           </div>
           <div className="form-group">
-            <label className="form-label">添加本地背景图</label>
+            <label className="form-label" htmlFor="local-bg-file">添加本地背景图</label>
             <input
               className="form-input"
               type="file"
@@ -405,7 +405,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             )}
           </div>
           <div className="form-group">
-            <label className="form-label">背景图 URL</label>
+            <label className="form-label" htmlFor="bg-url">背景图 URL</label>
             <input 
               className="form-input" 
               type="url" 
@@ -483,7 +483,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           </div>
           {audioLoadMethod === 'custom' && (
             <div className="form-group">
-              <label className="form-label">自定义代理URL</label>
+              <label className="form-label" htmlFor="custom-proxy-url">自定义代理URL</label>
               <input 
                 className="form-input" 
                 type="url" 
