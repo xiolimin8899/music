@@ -698,10 +698,10 @@ footer a {
 .art-lg::before {
   content: '';
   position: absolute;
-  right: -50px;
-  top: -10px;
-  width: 100px;
-  height: 100px;
+  right: -32px;
+  top: 0;
+  width: 64px;
+  height: 64px;
   background-image: url('/images/cd_tou.webp');
   background-size: contain;
   background-repeat: no-repeat;
@@ -819,21 +819,15 @@ footer a {
   }
 
   .player { 
-    padding: 10px; 
-    height: 160px;
-    min-height: 160px;
+    padding: 12px; 
+    height: 180px;
+    min-height: 180px;
   }
-  .player-card { padding: 12px 12px 10px; }
-  .top { grid-template-columns: 80px 1fr; gap: 10px; }
+  .player-card { padding: 14px 14px 12px; }
+  .top { grid-template-columns: 80px 1fr; gap: 12px; }
   .art-lg { width: 80px; height: 80px; }
-  .art-lg::before {
-    right: -40px;
-    top: -8px;
-    width: 80px;
-    height: 80px;
-  }
   .meta { margin-left: 0; text-align: center; }
-  .track-title { font-size: 18px; }
+  .track-title { font-size: 16px; }
   .track-title { text-align: center; }
   .track-sub { text-align: center; }
   .track-sub { font-size: 12px; }
@@ -948,44 +942,6 @@ footer a {
     background-clip: padding-box !important;
     -webkit-background-clip: padding-box !important;
   }
-}
-
-/* 超小屏幕优化 */
-@media (max-width: 360px) {
-  .player { 
-    height: 140px;
-    min-height: 140px;
-  }
-  .player-card { padding: 8px 8px 6px; }
-  .top { grid-template-columns: 70px 1fr; gap: 8px; }
-  .art-lg { width: 70px; height: 70px; }
-  .art-lg::before {
-    right: -35px;
-    top: -6px;
-    width: 70px;
-    height: 70px;
-  }
-  .track-title { font-size: 14px; }
-  .track-sub { font-size: 10px; }
-}
-
-/* 中等屏幕优化 */
-@media (min-width: 481px) and (max-width: 768px) {
-  .player { 
-    height: 180px;
-    min-height: 180px;
-  }
-  .player-card { padding: 14px 14px 12px; }
-  .top { grid-template-columns: 100px 1fr; gap: 14px; }
-  .art-lg { width: 100px; height: 100px; }
-  .art-lg::before {
-    right: -50px;
-    top: -10px;
-    width: 100px;
-    height: 100px;
-  }
-  .track-title { font-size: 19px; }
-  .track-sub { font-size: 12px; }
 }
 
 /* 音频缓存管理样式 */
