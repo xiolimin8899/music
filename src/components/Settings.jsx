@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { preloadBackgroundImage } from '../utils/image'
-import Manager from './Manager'
+import { useAudioCache, useAudioCacheConfig } from '../hooks/Cache'
 
 export default function Settings({ open, onClose, onAddSong, onImportRepo, onImportApi, onResetPlaylist, onWebDavUpload, onWebDavRestore }) {
   const [songUrl, setSongUrl] = useState('')
@@ -35,7 +35,10 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
     { label: '思源黑体', value: "'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', sans-serif" }
   ]
   const [fontPreset, setFontPreset] = useState('')
-  const [showCacheManager, setShowCacheManager] = useState(false)
+  
+  // 音频缓存管理
+  const { cacheStats, isEnabled, toggleCache, setMaxCacheSize, clearCache } = useAudioCache()
+  const { config, updateConfig } = useAudioCacheConfig()
 
   useEffect(() => {
     if (!open) return
@@ -511,13 +514,6 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             <button
               type="button"
               className="btn-sakura"
-              onClick={() => setShowCacheManager(true)}
-            >
-              音频缓存管理
-            </button>
-            <button
-              type="button"
-              className="btn-sakura"
               onClick={() => {
                 try {
                   localStorage.setItem('ui.audioLoadMethod', audioLoadMethod || '')
@@ -536,17 +532,171 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
                应用并保存
              </button>
           </div>
+          <hr className="hr" />
+          <div className="section-title">音频缓存管理</div>
+          
+          {/* 缓存状态 */}
+          <div className="cache-status">
+            <div className="status-grid">
+              <div className="status-item">
+                <span className="label">缓存状态:</span>
+                <span className={`value ${isEnabled ? 'enabled' : 'disabled'}`}>
+                  {isEnabled ? '已启用' : '已禁用'}
+                </span>
+              </div>
+              <div className="status-item">
+                <span className="label">缓存数量:</span>
+                <span className="value">{cacheStats.cacheSize} / {cacheStats.maxCacheSize}</span>
+              </div>
+              <div className="status-item">
+                <span className="label">预加载队列:</span>
+                <span className="value">{cacheStats.preloadQueueLength}</span>
+              </div>
+              <div className="status-item">
+                <span className="label">预加载状态:</span>
+                <span className={`value ${cacheStats.isPreloading ? 'loading' : 'idle'}`}>
+                  {cacheStats.isPreloading ? '进行中' : '空闲'}
+                </span>
+              </div>
+            </div>
+            
+            {/* 缓存使用率 */}
+            <div className="cache-usage">
+              <div className="usage-header">
+                <span>缓存使用率</span>
+                <span>{Math.round((cacheStats.cacheSize / cacheStats.maxCacheSize) * 100)}%</span>
+              </div>
+              <div className="usage-bar">
+                <div 
+                  className="usage-fill" 
+                  style={{ width: `${Math.round((cacheStats.cacheSize / cacheStats.maxCacheSize) * 100)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 基本设置 */}
+          <div className="cache-settings">
+            <h4>基本设置</h4>
+            <div className="form-group">
+              <label className="form-label">
+                <input
+                  type="checkbox"
+                  checked={isEnabled}
+                  onChange={(e) => toggleCache(e.target.checked)}
+                />
+                启用音频缓存
+              </label>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="max-cache-size">最大缓存数量</label>
+              <input
+                className="form-input"
+                type="number"
+                min="1"
+                max="200"
+                value={config.maxCacheSize}
+                onChange={(e) => {
+                  const newSize = parseInt(e.target.value)
+                  updateConfig({ maxCacheSize: newSize })
+                  setMaxCacheSize(newSize)
+                }}
+                disabled={!isEnabled}
+                id="max-cache-size"
+                name="max-cache-size"
+              />
+            </div>
+          </div>
+
+          {/* 高级设置 */}
+          <div className="cache-settings">
+            <h4>高级设置</h4>
+            <div className="form-group">
+              <label className="form-label" htmlFor="preload-count">预加载数量</label>
+              <input
+                className="form-input"
+                type="number"
+                min="1"
+                max="10"
+                value={config.preloadCount}
+                onChange={(e) => {
+                  const newCount = parseInt(e.target.value)
+                  updateConfig({ preloadCount: newCount })
+                }}
+                disabled={!isEnabled}
+                id="preload-count"
+                name="preload-count"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="preload-delay">预加载延迟 (ms)</label>
+              <input
+                className="form-input"
+                type="number"
+                min="100"
+                max="5000"
+                value={config.preloadDelay}
+                onChange={(e) => updateConfig({ preloadDelay: parseInt(e.target.value) })}
+                disabled={!isEnabled}
+                id="preload-delay"
+                name="preload-delay"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">
+                <input
+                  type="checkbox"
+                  checked={config.autoCleanup}
+                  onChange={(e) => updateConfig({ autoCleanup: e.target.checked })}
+                  disabled={!isEnabled}
+                />
+                自动清理缓存
+              </label>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="cleanup-interval">清理间隔 (ms)</label>
+              <input
+                className="form-input"
+                type="number"
+                min="60000"
+                max="3600000"
+                value={config.cleanupInterval}
+                onChange={(e) => updateConfig({ cleanupInterval: parseInt(e.target.value) })}
+                disabled={!isEnabled || !config.autoCleanup}
+                id="cleanup-interval"
+                name="cleanup-interval"
+              />
+            </div>
+          </div>
+
+          {/* 操作按钮 */}
+          <div className="cache-actions">
+            <button
+              className="btn-sakura"
+              onClick={() => {
+                setMaxCacheSize(config.maxCacheSize)
+                alert('配置已保存并应用！')
+              }}
+            >
+              保存配置
+            </button>
+            <button
+              className="btn-sakura"
+              onClick={() => {
+                if (confirm('确定要清理所有缓存吗？')) {
+                  clearCache()
+                }
+              }}
+              disabled={!isEnabled}
+            >
+              清理缓存
+            </button>
+          </div>
         </div>
         <div className="modal-actions">
           <button type="button" className="btn-danger" onClick={onClose}>关闭</button>
         </div>
     </div>
-    
-    {/* 音频缓存管理 */}
-    <Manager 
-      isOpen={showCacheManager} 
-      onClose={() => setShowCacheManager(false)} 
-    />
     </>
   )
 }
