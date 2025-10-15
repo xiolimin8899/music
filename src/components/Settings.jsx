@@ -579,16 +579,6 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           <div className="cache-settings">
             <h4>基本设置</h4>
             <div className="form-group">
-              <label className="form-label">
-                <input
-                  type="checkbox"
-                  checked={isEnabled}
-                  onChange={(e) => toggleCache(e.target.checked)}
-                />
-                启用音频缓存
-              </label>
-            </div>
-            <div className="form-group">
               <label className="form-label" htmlFor="max-cache-size">最大缓存数量</label>
               <input
                 className="form-input"
@@ -605,6 +595,16 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
                 id="max-cache-size"
                 name="max-cache-size"
               />
+            </div>
+            <div className="form-group">
+              <label className="form-label">
+                <input
+                  type="checkbox"
+                  checked={isEnabled}
+                  onChange={(e) => toggleCache(e.target.checked)}
+                />
+                启用音频缓存
+              </label>
             </div>
           </div>
 
@@ -643,6 +643,24 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               />
             </div>
             <div className="form-group">
+              <label className="form-label" htmlFor="cleanup-interval">清理间隔 (天)</label>
+              <input
+                className="form-input"
+                type="number"
+                min="1"
+                max="30"
+                value={Math.round(config.cleanupInterval / (1000 * 60 * 60 * 24))}
+                onChange={(e) => {
+                  const days = parseInt(e.target.value)
+                  const milliseconds = days * 24 * 60 * 60 * 1000
+                  updateConfig({ cleanupInterval: milliseconds })
+                }}
+                disabled={!isEnabled || !config.autoCleanup}
+                id="cleanup-interval"
+                name="cleanup-interval"
+              />
+            </div>
+            <div className="form-group">
               <label className="form-label">
                 <input
                   type="checkbox"
@@ -652,20 +670,6 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
                 />
                 自动清理缓存
               </label>
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="cleanup-interval">清理间隔 (ms)</label>
-              <input
-                className="form-input"
-                type="number"
-                min="60000"
-                max="3600000"
-                value={config.cleanupInterval}
-                onChange={(e) => updateConfig({ cleanupInterval: parseInt(e.target.value) })}
-                disabled={!isEnabled || !config.autoCleanup}
-                id="cleanup-interval"
-                name="cleanup-interval"
-              />
             </div>
           </div>
 
