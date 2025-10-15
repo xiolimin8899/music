@@ -783,7 +783,9 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
 
 
   const onSeeked = () => {
-
+    // 添加防抖，避免在seekChange期间频繁触发
+    if (isSeekingRef.current) return
+    
     const audio = audioRef.current
     if (audio) {
       setCurrentTime(audio.currentTime || 0)
@@ -822,10 +824,9 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
       const audio = audioRef.current
       if (audio && audio.readyState >= 2) {
         audio.currentTime = value
-
         isSeekingRef.current = false
       }
-    }, 100)
+    }, 150) // 增加延迟时间，避免与onSeeked冲突
   }
 
 
@@ -940,8 +941,12 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
     }, 50)
     
     if (hasInteracted && isPlaying) {
-
+      let playCalled = false // 防止重复调用play
+      
       const onCanPlay = () => {
+        if (playCalled) return
+        playCalled = true
+        
         audio.removeEventListener('canplay', onCanPlay)
         audio.removeEventListener('canplaythrough', onCanPlay)
         audio.removeEventListener('loadeddata', onCanPlay)
@@ -956,10 +961,13 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
       audio.addEventListener('loadeddata', onCanPlay)
       
       setTimeout(() => {
-        audio.removeEventListener('canplay', onCanPlay)
-        audio.removeEventListener('canplaythrough', onCanPlay)
-        audio.removeEventListener('loadeddata', onCanPlay)
-        play().catch(() => {})
+        if (!playCalled) {
+          playCalled = true
+          audio.removeEventListener('canplay', onCanPlay)
+          audio.removeEventListener('canplaythrough', onCanPlay)
+          audio.removeEventListener('loadeddata', onCanPlay)
+          play().catch(() => {})
+        }
       }, 2000)
     } else {
 
