@@ -805,6 +805,7 @@ footer a {
   }
   .player-card { padding: 14px 14px 12px; }
   .top { grid-template-columns: 96px 1fr; gap: 12px; }
+  .settings-icon { z-index: 2000; }
   .art-lg { width: 96px; height: 96px; }
   .meta { margin-left: 0; text-align: center; }
   .track-title { font-size: 18px; }
