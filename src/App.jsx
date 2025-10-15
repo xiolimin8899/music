@@ -7,7 +7,6 @@ const Settings = React.lazy(() => import('./components/Settings.jsx'))
 const Progress = React.lazy(() => import('./components/Progress.jsx'))
 import { useError } from './hooks/useError'
 import { useAppState } from './hooks/useState'
-import { useBadges } from './hooks/useBadges'
 import { useKey } from './hooks/useKey'
 import { useTheme } from './hooks/useTheme'
 import { loadManifest, processTracks, preloadAssets } from './utils/manifest'
@@ -19,7 +18,6 @@ import { executeUpload } from './services/upload'
 export default function App() {
   const { handleError } = useError()
   const appState = useAppState()
-  const { showBadges, badgeCache } = useBadges()
   useTheme()
   
   const {
@@ -400,49 +398,9 @@ export default function App() {
         marginTop: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined, 
         paddingBottom: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined,
         minHeight: '40px',
-        contain: 'layout style',
-        overflow: 'visible'
+        contain: 'layout style'
       }}>
-        <div style={{ 
-          textAlign: 'center', 
-          marginTop: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : '0.25rem', 
-          lineHeight: (typeof window !== 'undefined' && window.innerWidth <= 480) ? 0 : undefined,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexWrap: 'wrap',
-          gap: '4px'
-        }}>
-          {showBadges ? (
-            (badgeCache || [
-              { href: 'https://blog.wedp.dpdns.org/jpg/wx.webp', src: 'https://img.shields.io/badge/微信-zxlwq-07C160.svg?logo=wechat', alt: '微信' },
-              { href: 'https://t.me/zxlwq', src: 'https://img.shields.io/badge/Telegram-zxlwq-0088CC.svg?logo=telegram&logoColor=0088CC', alt: 'Telegram' },
-              { href: 'https://github.com/zxlwq/music', src: 'https://img.shields.io/badge/GitHub-Repo-black.svg?logo=github&logoColor=white', alt: 'GitHub Repo' },
-              { href: 'https://pages.cloudflare.com/', src: 'https://img.shields.io/badge/Cloudflare-Pages-orange.svg?logo=cloudflare&logoColor=F38020', alt: 'Cloudflare Pages' },
-              { href: 'https://www.bilibili.com/', src: 'https://img.shields.io/badge/Bilibili-zxlwq-FF69B4.svg?logo=bilibili&logoColor=FF69B4', alt: 'Bilibili' },
-              { href: 'https://www.youtube.com/@zxlwq', src: 'https://img.shields.io/badge/YouTube-zxlwq-FF0000.svg?logo=youtube&logoColor=FF0000', alt: 'YouTube' },
-              { href: 'https://www.instagram.com/zxlwq', src: 'https://img.shields.io/badge/Instagram-zxlwq-E4405F.svg?logo=instagram&logoColor=E4405F', alt: 'Instagram' }
-            ]).map((badge, index) => (
-              <a key={index} href={badge.href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block' }}>
-                <img 
-                  loading="lazy" 
-                  referrerPolicy="no-referrer" 
-                  src={badge.src} 
-                  alt={badge.alt}
-                  style={{ 
-                    transition: 'opacity 0.3s ease',
-                    opacity: badgeCache ? 1 : 0.7,
-                    height: '20px',
-                    width: 'auto',
-                    display: 'block',
-                    maxWidth: '100%',
-                    objectFit: 'contain'
-                  }}
-                />
-              </a>
-            ))
-          ) : null}
-        </div>
+        <div style={{ textAlign: 'center' }}></div>
       </footer>
     </div>
   )
