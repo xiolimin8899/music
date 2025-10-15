@@ -464,7 +464,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           <hr className="hr" />
           <div className="section-title">音频加载设置</div>
           <div className="form-group">
-            <label className="form-label"></label>
+            <label className="form-label" htmlFor="audio-load-method">音频加载方式</label>
             <select
               className="form-input"
               value={audioLoadMethod}
