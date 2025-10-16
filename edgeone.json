@@ -332,7 +332,7 @@
       "destination": "/api/webdav"
     },
     {
-      "source": "/*",
+      "source": "/((?!api|assets|images|covers|music|sw\\.js|manifest\\.json|favicon\\.ico).*)",
       "destination": "/index.html"
     }
   ],
@@ -371,10 +371,10 @@
     },
     {
       "source": "/manifest.json",
-      "cacheTtl": 86400
+      "cacheTtl": 0
     },
     {
-      "source": "/*",
+      "source": "/((?!api|assets|images|covers|music|sw\\.js|manifest\\.json|favicon\\.ico).*)",
       "cacheTtl": 0
     }
   ]
