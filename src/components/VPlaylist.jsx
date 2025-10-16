@@ -11,6 +11,8 @@ export default function VPlaylist({
   currentIndex, 
   onSelect, 
   onDelete,
+  onToggleFavorite,
+  favoriteUrls = new Set(),
   itemHeight = 45, // 每个播放列表项的高度
   containerHeight = 400, // 容器高度
   overscan = 5 // 额外渲染的项目数量
@@ -123,6 +125,8 @@ export default function VPlaylist({
             isActive={index === currentIndex}
             onSelect={onSelect}
             onDelete={onDelete}
+            onToggleFavorite={onToggleFavorite}
+            isFavorite={favoriteUrls.has(item.url)}
           />
         )}
       </VScroll>
