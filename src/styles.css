@@ -924,8 +924,8 @@ input[type="range"] { width: 200px; }
   pointer-events: none;
   transition: opacity .2s ease, color .15s ease, background .15s ease;
 }
-.locate-fab.visible { opacity: 1; pointer-events: auto; color: #ffb3d1; }
-.locate-fab:hover { color: #ff8fb3; }
+.locate-fab.visible { opacity: 1; pointer-events: auto; color: #ff8fb3; }
+.locate-fab:hover { color: #ffb3d1; }
 
 .playlist .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
