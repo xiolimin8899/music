@@ -83,6 +83,8 @@ export default function ErrorNotification({ error, onClose, autoClose = true, du
               setVisible(false)
               onClose?.()
             }}
+            id="error-toast-close-btn"
+            name="error-toast-close"
           >
             ×
           </button>
