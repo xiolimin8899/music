@@ -646,9 +646,11 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               />
             </div>
             <div className="form-group">
-              <label className="form-label">
+              <label className="form-label" htmlFor="enable-cache">
                 <input
                   type="checkbox"
+                  id="enable-cache"
+                  name="enable-cache"
                   checked={isEnabled}
                   onChange={(e) => toggleCache(e.target.checked)}
                 />
