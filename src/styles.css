@@ -74,7 +74,7 @@ select.form-input:focus { border-color: #6b7280; }
   background: rgba(21, 21, 24, .35);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, .18);
+  border: 1px solid rgba(255, 255, 255, .45);
   border-radius: 12px;
   height: 450px;
   min-height: 450px;
@@ -401,7 +401,7 @@ h1 {
   background: rgba(21, 21, 24, .35);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, .18);
+  border: 1px solid rgba(255, 255, 255, .45);
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
