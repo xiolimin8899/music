@@ -1014,7 +1014,7 @@ export default function Player({ tracks, currentIndex, onChangeIndex, forcePlayK
 
   return (
     <div className="player player-card">
-      <button className="settings-icon" aria-label="打开设置" onClick={onOpenSettings}>⚙️</button>
+      <button className="settings-icon" aria-label="打开设置" onClick={onOpenSettings} id="settings-btn" name="settings">⚙️</button>
       <audio
         ref={audioRef}
         src={getAudioUrl(currentTrack)}
