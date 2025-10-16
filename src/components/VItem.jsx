@@ -104,6 +104,8 @@ export default function VItem({
             onToggleFavorite && onToggleFavorite(item.url, !isFavorite)
           }}
           aria-label={`${isFavorite ? '取消收藏' : '收藏'} ${song}${artist ? ' - ' + artist : ''}`}
+          id={`favorite-btn-${item.url}`}
+          name="favorite"
           style={{
             color: isFavorite ? '#ff8fb3' : 'var(--sub)',
             background: 'transparent',
@@ -151,6 +153,8 @@ export default function VItem({
             onDelete && onDelete(item.url) 
           }}
           aria-label={`删除 ${song}${artist ? ' - ' + artist : ''}`}
+          id={`delete-btn-${item.url}`}
+          name="delete"
           style={{
             color: 'var(--sub)',
             background: 'transparent',
