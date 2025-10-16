@@ -5,6 +5,8 @@ const VPlaylist = React.lazy(() => import('./components/VPlaylist.jsx'))
 const Password = React.lazy(() => import('./components/Password.jsx'))
 const Settings = React.lazy(() => import('./components/Settings.jsx'))
 const Progress = React.lazy(() => import('./components/Progress.jsx'))
+import ErrorBoundary from './components/Bondary'
+import { useErrorNotification } from './components/Notifica'
 import { useError } from './hooks/useError'
 import { useAppState } from './hooks/useState'
 import { useKey } from './hooks/useKey'
@@ -16,7 +18,8 @@ import { executeDelete } from './services/delete'
 import { executeUpload } from './services/upload'
 
 export default function App() {
-  const { handleError } = useError()
+  const { handleError, handleAsyncError } = useError()
+  const { addNotification, ErrorNotificationContainer } = useErrorNotification()
   const appState = useAppState()
   useTheme()
   
@@ -42,15 +45,16 @@ export default function App() {
 
   const loadManifestData = async () => {
     try {
-      const data = await loadManifest()
+      const data = await handleAsyncError(loadManifest(), '清单加载')
       const finalList = processTracks(data)
       setTracks(finalList)
       setLoading(false)
       await preloadAssets(finalList)
     } catch (e) {
-      handleError(e, '清单加载')
-      setError(e.message || '清单加载错误')
+      const appError = handleError(e, '清单加载')
+      setError(appError.message || '清单加载错误')
       setLoading(false)
+      addNotification(appError, { autoClose: true, duration: 5000 })
     }
   }
   
@@ -105,7 +109,14 @@ export default function App() {
   if (!tracks.length) return <div className="container">未发现音乐文件，请将音频放入 public/music</div>
 
   return (
-    <div className="container">
+    <ErrorBoundary 
+      name="App"
+      onError={(error, errorInfo) => {
+        console.error('App Error Boundary caught an error:', error, errorInfo)
+        addNotification(error, { autoClose: false })
+      }}
+    >
+      <div className="container">
       <Suspense fallback={
         <div className="player" style={{ height: '200px', minHeight: '200px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -402,7 +413,10 @@ export default function App() {
       }}>
         <div style={{ textAlign: 'center' }}></div>
       </footer>
-    </div>
+      </div>
+      
+      <ErrorNotificationContainer />
+    </ErrorBoundary>
   )
 }
 
