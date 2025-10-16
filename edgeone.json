@@ -256,5 +256,23 @@
       "source": "/sitemap.xml",
       "destination": "/public/sitemap.xml"
     }
+  ],
+  "caches": [
+    {
+      "source": "/*",
+      "cacheTtl": 0
+    },
+    {
+      "source": "/api/*",
+      "cacheTtl": 0
+    },
+    {
+      "source": "/assets/*",
+      "cacheTtl": 86400
+    },
+    {
+      "source": "/images/*",
+      "cacheTtl": 86400
+    }
   ]
 }
