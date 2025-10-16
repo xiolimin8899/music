@@ -304,14 +304,6 @@
       "destination": "/images/logo.webp"
     },
     {
-      "source": "/robots.txt",
-      "destination": "/public/robots.txt"
-    },
-    {
-      "source": "/sitemap.xml",
-      "destination": "/public/sitemap.xml"
-    },
-    {
       "source": "/api/music",
       "destination": "/api/music/list"
     },
