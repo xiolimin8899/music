@@ -34,7 +34,7 @@
       "statusCode": 301
     },
     {
-      "source": "/api/music",
+      "source": "/api/music/list",
       "destination": "/api/music/list",
       "statusCode": 301
     },
@@ -337,7 +337,7 @@
       "destination": "/images/logo.webp"
     },
     {
-      "source": "/api/music",
+      "source": "/api/music/list",
       "destination": "/api/music/list"
     },
     {
