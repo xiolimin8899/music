@@ -319,26 +319,90 @@
       "destination": "/public/sitemap.xml"
     },
     {
+      "source": "/sw.js",
+      "destination": "/sw.js"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
+    },
+    {
+      "source": "/assets/*",
+      "destination": "/assets/:splat"
+    },
+    {
+      "source": "/images/*",
+      "destination": "/images/:splat"
+    },
+    {
+      "source": "/*.webp",
+      "destination": "/:splat"
+    },
+    {
+      "source": "/*.mp3",
+      "destination": "/:splat"
+    },
+    {
+      "source": "/*.flac",
+      "destination": "/:splat"
+    },
+    {
+      "source": "/*.wav",
+      "destination": "/:splat"
+    },
+    {
+      "source": "/*.m4a",
+      "destination": "/:splat"
+    },
+    {
+      "source": "/*.ogg",
+      "destination": "/:splat"
+    },
+    {
       "source": "/*",
       "destination": "/index.html"
     }
   ],
   "caches": [
     {
-      "source": "/*",
-      "cacheTtl": 0
-    },
-    {
       "source": "/api/*",
       "cacheTtl": 0
     },
     {
       "source": "/assets/*",
-      "cacheTtl": 86400
+      "cacheTtl": 31536000
     },
     {
       "source": "/images/*",
+      "cacheTtl": 31536000
+    },
+    {
+      "source": "/*.js",
+      "cacheTtl": 31536000
+    },
+    {
+      "source": "/*.css",
+      "cacheTtl": 31536000
+    },
+    {
+      "source": "/*.webp",
+      "cacheTtl": 31536000
+    },
+    {
+      "source": "/*.mp3",
+      "cacheTtl": 31536000
+    },
+    {
+      "source": "/sw.js",
+      "cacheTtl": 0
+    },
+    {
+      "source": "/manifest.json",
       "cacheTtl": 86400
+    },
+    {
+      "source": "/*",
+      "cacheTtl": 0
     }
   ]
 }
