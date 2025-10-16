@@ -42,6 +42,58 @@ export default function App() {
     progressValue, setProgressValue
   } = appState
 
+  // 收藏功能状态
+  const [favoriteUrls, setFavoriteUrls] = useState(new Set())
+  const [showFavorites, setShowFavorites] = useState(false)
+
+  // 从localStorage加载收藏列表
+  useEffect(() => {
+    try {
+      const savedFavorites = localStorage.getItem('favoriteUrls')
+      if (savedFavorites) {
+        setFavoriteUrls(new Set(JSON.parse(savedFavorites)))
+      }
+    } catch (e) {
+      console.error('加载收藏列表失败:', e)
+    }
+  }, [])
+
+  // 保存收藏列表到localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('favoriteUrls', JSON.stringify([...favoriteUrls]))
+    } catch (e) {
+      console.error('保存收藏列表失败:', e)
+    }
+  }, [favoriteUrls])
+
+  // 切换收藏状态
+  const handleToggleFavorite = (url, isFavorite) => {
+    setFavoriteUrls(prev => {
+      const newSet = new Set(prev)
+      if (isFavorite) {
+        newSet.add(url)
+      } else {
+        newSet.delete(url)
+      }
+      return newSet
+    })
+  }
+
+  // 切换歌单显示状态
+  const toggleFavorites = () => {
+    setShowFavorites(prev => !prev)
+    setQuery('')
+  }
+
+  // 全局函数，供设置菜单调用
+  useEffect(() => {
+    window.toggleFavorites = toggleFavorites
+    return () => {
+      delete window.toggleFavorites
+    }
+  }, [])
+
   useKey(passwordOpen, settingsOpen, progressOpen, setPasswordOpen, setSettingsOpen, setProgressOpen, setPendingDeleteUrl, setPendingDeleteName)
 
   const loadManifestData = async () => {
@@ -74,12 +126,23 @@ export default function App() {
 
   const normalized = (s) => (s || '').toLowerCase()
   const filteredTracks = useMemo(() => {
-    return tracks.filter(t => {
-      if (!query.trim()) return true
-      const title = t.title || ''
-      return normalized(title).includes(normalized(query))
-    })
-  }, [tracks, query])
+    let filtered = tracks
+    
+    // 如果显示收藏歌单，只显示收藏的歌曲
+    if (showFavorites) {
+      filtered = tracks.filter(t => favoriteUrls.has(t.url))
+    }
+    
+    // 应用搜索过滤
+    if (query.trim()) {
+      filtered = filtered.filter(t => {
+        const title = t.title || ''
+        return normalized(title).includes(normalized(query))
+      })
+    }
+    
+    return filtered
+  }, [tracks, query, showFavorites, favoriteUrls])
 
   useEffect(() => {
     if (currentIndex >= filteredTracks.length) {
@@ -156,6 +219,8 @@ export default function App() {
           
           setPasswordOpen(true)
         }}
+        onToggleFavorite={handleToggleFavorite}
+        favoriteUrls={favoriteUrls}
         itemHeight={45}
         containerHeight={window.innerWidth <= 480 ? 300 : 400}
         overscan={5}
