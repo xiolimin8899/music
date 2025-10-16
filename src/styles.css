@@ -698,7 +698,7 @@ footer a {
 .art-lg::before {
   content: '';
   position: absolute;
-  right: -30px;
+  right: -28px;
   top: 0;
   width: 64px;
   height: 64px;
@@ -838,7 +838,7 @@ footer a {
   .track-title { 
     font-size: 17px; 
     text-align: left;
-    margin-left: -10px;
+    margin-left: -8px;
   }
   .track-sub { text-align: center; }
   .track-sub { font-size: 12px; }
