@@ -66,79 +66,77 @@ export default function Dialog({
   const progressColor = getTypeColor()
 
   return (
-    <div className="progress-dialog-overlay">
-      <div className="progress-dialog">
-        <div className="progress-dialog-header">
-          <h3 className="progress-dialog-title">
-            <span className="progress-dialog-icon" style={{ color: progressColor }}>
-              {getTypeIcon()}
-            </span>
-            {title}
-          </h3>
-          {showCancel && (
-            <button 
-              className="progress-dialog-close"
-              onClick={onClose}
-              aria-label="关闭"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          )}
+    <div className="progress-dialog">
+      <div className="progress-dialog-header">
+        <h3 className="progress-dialog-title">
+          <span className="progress-dialog-icon" style={{ color: progressColor }}>
+            {getTypeIcon()}
+          </span>
+          {title}
+        </h3>
+        {showCancel && (
+          <button 
+            className="progress-dialog-close"
+            onClick={onClose}
+            aria-label="关闭"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        )}
+      </div>
+      
+      <div className="progress-dialog-body">
+        <p className="progress-dialog-message">{message}</p>
+        
+        <div className="progress-dialog-progress">
+          <div className="progress-dialog-progress-track">
+            <div 
+              className="progress-dialog-progress-fill"
+              style={{ 
+                width: `${Math.min(100, Math.max(0, value))}%`,
+                background: `linear-gradient(90deg, ${progressColor}, ${progressColor}dd)`
+              }}
+            ></div>
+          </div>
+          <div className="progress-dialog-progress-text">
+            {isCompleted ? '完成' : `${Math.round(value)}%`}
+          </div>
         </div>
         
-        <div className="progress-dialog-body">
-          <p className="progress-dialog-message">{message}</p>
-          
-          <div className="progress-dialog-progress">
-            <div className="progress-dialog-progress-track">
-              <div 
-                className="progress-dialog-progress-fill"
-                style={{ 
-                  width: `${Math.min(100, Math.max(0, value))}%`,
-                  background: `linear-gradient(90deg, ${progressColor}, ${progressColor}dd)`
-                }}
-              ></div>
-            </div>
-            <div className="progress-dialog-progress-text">
-              {isCompleted ? '完成' : `${Math.round(value)}%`}
+        {showAnimation && !isCompleted && (
+          <div className="progress-dialog-animation">
+            <div className="progress-dots">
+              <div className="dot" style={{ background: progressColor }}></div>
+              <div className="dot" style={{ background: progressColor }}></div>
+              <div className="dot" style={{ background: progressColor }}></div>
             </div>
           </div>
-          
-          {showAnimation && !isCompleted && (
-            <div className="progress-dialog-animation">
-              <div className="progress-dots">
-                <div className="dot" style={{ background: progressColor }}></div>
-                <div className="dot" style={{ background: progressColor }}></div>
-                <div className="dot" style={{ background: progressColor }}></div>
-              </div>
-            </div>
-          )}
-          
-          {isCompleted && (
-            <div className="progress-dialog-success">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22,4 12,14.01 9,11.01"></polyline>
-              </svg>
-              <span>操作完成</span>
-            </div>
-          )}
-        </div>
+        )}
         
-        {showCancel && (
-          <div className="progress-dialog-footer">
-            <button 
-              className="progress-dialog-cancel-btn"
-              onClick={onClose}
-            >
-              {isCompleted ? '关闭' : '取消'}
-            </button>
+        {isCompleted && (
+          <div className="progress-dialog-success">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22,4 12,14.01 9,11.01"></polyline>
+            </svg>
+            <span>操作完成</span>
           </div>
         )}
       </div>
+      
+      {showCancel && (
+        <div className="progress-dialog-footer">
+          <button 
+            className="progress-dialog-cancel-btn"
+            onClick={onClose}
+          >
+            {isCompleted ? '关闭' : '取消'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
