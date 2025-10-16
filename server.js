@@ -1020,29 +1020,29 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🎵 Music server running on port ${PORT}`)
-  console.log(`📁 Serving static files from: ${join(__dirname, 'dist')}`)
-  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`)
+  console.log(`🎵 音乐服务运行在端口 ${PORT}`)
+  console.log(`📁 静态文件服务目录: ${join(__dirname, 'dist')}`)
+  console.log(`🔧 运行环境: ${process.env.NODE_ENV || 'development'}`)
   
   // 检查必要的环境变量
   const requiredEnvVars = ['GIT_REPO', 'GIT_TOKEN', 'PASSWORD']
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName])
   
   if (missingVars.length > 0) {
-    console.warn(`⚠️  Missing required environment variables: ${missingVars.join(', ')}`)
-    console.warn('   Some features may not work properly')
+    console.warn(`⚠️  缺少必要的环境变量: ${missingVars.join(', ')}`)
+    console.warn('   某些功能可能无法正常工作')
   } else {
-    console.log('✅ All required environment variables are set')
+    console.log('✅ 所有必要的环境变量已设置')
   }
 })
 
 // 优雅关闭
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully')
+  console.log('收到SIGTERM信号，正在优雅关闭服务器')
   process.exit(0)
 })
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully')
+  console.log('收到SIGINT信号，正在优雅关闭服务器')
   process.exit(0)
 })
