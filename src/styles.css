@@ -85,6 +85,8 @@ select.form-input:focus { border-color: #6b7280; }
   contain: layout style;
   grid-area: playlist;
   overflow: hidden;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 /* 虚拟滚动容器样式 */
@@ -379,7 +381,7 @@ body {
     "search"
     "playlist"
     "footer";
-  gap: 12px;
+  gap: 0px;
   position: relative;
   transform: translateZ(0);
   will-change: auto;
@@ -815,7 +817,7 @@ footer a {
     max-width: 100%; 
     padding: 12px 12px 0 12px; 
     grid-template-rows: auto auto 1fr auto;
-    gap: 8px;
+    gap: 0px;
   }
 
   .player { 
