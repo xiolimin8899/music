@@ -739,7 +739,7 @@ footer a {
   to { transform: rotate(360deg); }
 }
 .meta { min-width: 0; margin-left: 40px; }
-.track-title { margin: 0 0 6px 0; font-size: 24px; font-weight: 700; letter-spacing: .2px }
+.track-title { margin: 0 0 6px 0; font-size: 24px; font-weight: 700; letter-spacing: .2px; margin-left: 5px; }
 .track-sub { margin: 0 0 10px 0; color: var(--sub) }
 .controls-row { display: flex; align-items: center; gap: 16px; margin-left: -10px; }
 .controls-row .vol { margin-left: 15px; }
