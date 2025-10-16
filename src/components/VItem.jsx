@@ -10,7 +10,9 @@ export default function VItem({
   isVisible, 
   isActive, 
   onSelect, 
-  onDelete 
+  onDelete,
+  onToggleFavorite,
+  isFavorite = false
 }) {
   // 解析歌曲标题
   const parseTrackTitle = (title) => {
@@ -93,6 +95,53 @@ export default function VItem({
             MV
           </a>
         ) : null}
+        
+        <button
+          type="button"
+          className="favorite-btn"
+          onClick={(e) => { 
+            e.stopPropagation()
+            onToggleFavorite && onToggleFavorite(item.url, !isFavorite)
+          }}
+          aria-label={`${isFavorite ? '取消收藏' : '收藏'} ${song}${artist ? ' - ' + artist : ''}`}
+          style={{
+            color: isFavorite ? '#ff8fb3' : 'var(--sub)',
+            background: 'transparent',
+            border: 'none',
+            fontSize: '16px',
+            padding: '0',
+            cursor: 'pointer',
+            verticalAlign: 'baseline',
+            fontFamily: 'inherit',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '20px',
+            height: '20px',
+            transition: 'color 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            if (!isFavorite) {
+              e.target.style.color = '#ff8fb3'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isFavorite) {
+              e.target.style.color = 'var(--sub)'
+            }
+          }}
+        >
+          <svg 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill={isFavorite ? 'currentColor' : 'none'} 
+            stroke="currentColor" 
+            strokeWidth="2"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
         
         <button
           type="button"
