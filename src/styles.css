@@ -1437,30 +1437,6 @@ input[type="checkbox"]:hover:not(:disabled) {
   animation: pulse 2s infinite;
 }
 
-.progress-dialog-close {
-  background: linear-gradient(180deg, #ef4444, #b91c1c);
-  border: 1px solid #ef4444;
-  color: #fff;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 8px;
-  box-shadow: 0 6px 14px rgba(239,68,68,.35);
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.progress-dialog-close:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-}
-
-.progress-dialog-close:active {
-  transform: translateY(1px);
-}
 
 .progress-dialog-body {
   padding: 16px 20px;
@@ -1545,11 +1521,12 @@ input[type="checkbox"]:hover:not(:disabled) {
 }
 
 .progress-dialog-cancel-btn {
-  background: transparent;
-  border: 1px solid var(--muted);
-  color: var(--fg);
-  padding: 8px 16px;
-  border-radius: 10px;
+  background: linear-gradient(180deg, #ef4444, #b91c1c);
+  border: 1px solid #ef4444;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 6px 14px rgba(239,68,68,.35);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -1557,8 +1534,12 @@ input[type="checkbox"]:hover:not(:disabled) {
 }
 
 .progress-dialog-cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.progress-dialog-cancel-btn:active {
+  transform: translateY(1px);
 }
 
 .progress-dialog-success {
@@ -1589,11 +1570,11 @@ input[type="checkbox"]:hover:not(:disabled) {
 @keyframes slideUp {
   from { 
     opacity: 0;
-    transform: translateY(20px) scale(0.95);
+    transform: translate(-50%, -50%) translateY(20px);
   }
   to { 
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) translateY(0);
   }
 }
 
