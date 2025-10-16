@@ -59,6 +59,11 @@
       "source": "/api/fetch",
       "destination": "/api/fetch",
       "statusCode": 200
+    },
+    {
+      "source": "/api/webdav",
+      "destination": "/api/webdav",
+      "statusCode": 200
     }
   ],
   "headers": [
@@ -243,6 +248,10 @@
     {
       "source": "/api/fetch/*",
       "destination": "/api/fetch"
+    },
+    {
+      "source": "/api/webdav/*",
+      "destination": "/api/webdav"
     },
     {
       "source": "/favicon.ico",
