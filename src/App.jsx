@@ -173,7 +173,7 @@ export default function App() {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
             onAddSong={async ({ songUrl, songTitle, fileName, mvUrl, base64, contentType, suppressClose }) => {
-              await executeUpload(songUrl, songTitle, fileName, mvUrl, base64, contentType, suppressClose, tracks, setTracks, setQuery, setProgressOpen, setProgressTitle, setProgressMessage, setProgressValue, setSettingsOpen, handleError)
+              await executeUpload(songUrl, songTitle, fileName, mvUrl, base64, contentType, suppressClose, tracks, setTracks, query, setQuery, setProgressOpen, setProgressTitle, setProgressMessage, setProgressValue, setSettingsOpen, handleError)
             }}
         onImportRepo={async ({ gitRepo, gitToken, gitBranch, gitPath }) => {
           if (!gitRepo || !gitToken) return
