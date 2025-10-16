@@ -2,7 +2,8 @@ const CACHE_NAME = 'music-v1';
 const STATIC_CACHE = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/sw.js'
 ];
 
 const IMAGE_CACHE = [
@@ -73,6 +74,7 @@ self.addEventListener('fetch', (event) => {
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
   if (url.origin !== self.location.origin) return;
 
+  // 跳过音频文件的缓存，让浏览器直接处理
   if (request.destination === 'audio' ||
       url.pathname.includes('.mp3') ||
       url.pathname.includes('.flac') ||
@@ -83,6 +85,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 处理API请求
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       caches.open(API_CACHE).then(cache => {
@@ -101,8 +104,22 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 处理静态资源
   if (request.destination === 'document' ||
-      ['style', 'script', 'image'].includes(request.destination)) {
+      ['style', 'script', 'image', 'font'].includes(request.destination) ||
+      url.pathname.startsWith('/assets/') ||
+      url.pathname.startsWith('/images/') ||
+      url.pathname.startsWith('/covers/') ||
+      url.pathname.endsWith('.js') ||
+      url.pathname.endsWith('.css') ||
+      url.pathname.endsWith('.webp') ||
+      url.pathname.endsWith('.png') ||
+      url.pathname.endsWith('.jpg') ||
+      url.pathname.endsWith('.jpeg') ||
+      url.pathname.endsWith('.svg') ||
+      url.pathname.endsWith('.ico') ||
+      url.pathname === '/sw.js' ||
+      url.pathname === '/manifest.json') {
     event.respondWith(
       caches.match(request).then(response => {
         if (response) return response;
