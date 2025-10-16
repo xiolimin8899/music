@@ -4,13 +4,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
 
 /manifest.json
-  Content-Type: application/manifest+json
   Cache-Control: public, max-age=60, must-revalidate
-
-/sw.js
-  Content-Type: application/javascript
-  Cache-Control: no-cache, no-store, must-revalidate
-  Service-Worker-Allowed: /
 
 /music/*
   Cache-Control: public, max-age=604800, immutable
