@@ -188,6 +188,10 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
         }
       ]
     },
@@ -244,31 +248,48 @@
       ]
     },
     {
-      "source": "/assets/*",
+      "source": "/sw.js",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
+          "value": "no-cache, no-store, must-revalidate"
         },
         {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
         }
       ]
     }
   ],
   "rewrites": [
     {
+      "source": "/sw.js",
+      "destination": "/sw.js"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
+    },
+    {
       "source": "/assets/*",
       "destination": "/assets/:splat"
     },
     {
-      "source": "/index-*.js",
-      "destination": "/assets/:splat"
-    },
-    {
-      "source": "/index-*.css",
-      "destination": "/assets/:splat"
+      "source": "/images/*",
+      "destination": "/images/:splat"
     },
     {
       "source": "/covers/*",
@@ -277,6 +298,18 @@
     {
       "source": "/music/*",
       "destination": "/music/:splat"
+    },
+    {
+      "source": "/favicon.ico",
+      "destination": "/images/logo.webp"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/public/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/public/sitemap.xml"
     },
     {
       "source": "/api/music",
@@ -305,58 +338,6 @@
     {
       "source": "/api/webdav/*",
       "destination": "/api/webdav"
-    },
-    {
-      "source": "/favicon.ico",
-      "destination": "/images/logo.webp"
-    },
-    {
-      "source": "/robots.txt",
-      "destination": "/public/robots.txt"
-    },
-    {
-      "source": "/sitemap.xml",
-      "destination": "/public/sitemap.xml"
-    },
-    {
-      "source": "/sw.js",
-      "destination": "/sw.js"
-    },
-    {
-      "source": "/manifest.json",
-      "destination": "/manifest.json"
-    },
-    {
-      "source": "/assets/*",
-      "destination": "/assets/:splat"
-    },
-    {
-      "source": "/images/*",
-      "destination": "/images/:splat"
-    },
-    {
-      "source": "/*.webp",
-      "destination": "/:splat"
-    },
-    {
-      "source": "/*.mp3",
-      "destination": "/:splat"
-    },
-    {
-      "source": "/*.flac",
-      "destination": "/:splat"
-    },
-    {
-      "source": "/*.wav",
-      "destination": "/:splat"
-    },
-    {
-      "source": "/*.m4a",
-      "destination": "/:splat"
-    },
-    {
-      "source": "/*.ogg",
-      "destination": "/:splat"
     },
     {
       "source": "/*",
