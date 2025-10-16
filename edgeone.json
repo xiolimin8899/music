@@ -34,7 +34,7 @@
       "statusCode": 301
     },
     {
-      "source": "/api/music/list",
+      "source": "/api/music",
       "destination": "/api/music/list",
       "statusCode": 301
     },
@@ -92,31 +92,6 @@
         {
           "key": "Permissions-Policy",
           "value": "camera=(), microphone=(), geolocation=()"
-        }
-      ]
-    },
-    {
-      "source": "/api/music/list",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
         }
       ]
     },
@@ -204,14 +179,6 @@
         {
           "key": "Cache-Control",
           "value": "no-store, no-cache, must-revalidate"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
         }
       ]
     },
@@ -337,32 +304,32 @@
       "destination": "/images/logo.webp"
     },
     {
-      "source": "/api/music/list",
+      "source": "/api/music",
       "destination": "/api/music/list"
     },
     {
       "source": "/api/audio/*",
-      "destination": "/api/audio"
+      "destination": "/api/audio/:splat"
     },
     {
       "source": "/api/upload/*",
-      "destination": "/api/upload"
+      "destination": "/api/upload/:splat"
     },
     {
       "source": "/api/delete/*",
-      "destination": "/api/delete"
+      "destination": "/api/delete/:splat"
     },
     {
       "source": "/api/exists/*",
-      "destination": "/api/exists"
+      "destination": "/api/exists/:splat"
     },
     {
       "source": "/api/fetch/*",
-      "destination": "/api/fetch"
+      "destination": "/api/fetch/:splat"
     },
     {
       "source": "/api/webdav/*",
-      "destination": "/api/webdav"
+      "destination": "/api/webdav/:splat"
     },
     {
       "source": "/((?!api|assets|images|covers|music|sw\\.js|manifest\\.json|favicon\\.ico).*)",
