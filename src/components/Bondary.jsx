@@ -96,12 +96,16 @@ class ErrorBoundary extends React.Component {
                 className="btn btn-primary" 
                 onClick={this.handleRetry}
                 disabled={this.state.retryCount >= 3}
+                id="error-retry-btn"
+                name="error-retry"
               >
                 {this.state.retryCount >= 3 ? '重试次数已达上限' : '重试'}
               </button>
               <button 
                 className="btn btn-secondary" 
                 onClick={this.handleReload}
+                id="error-reload-btn"
+                name="error-reload"
               >
                 重新加载页面
               </button>
