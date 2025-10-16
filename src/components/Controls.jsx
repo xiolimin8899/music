@@ -17,13 +17,13 @@ export default function Controls({
 }) {
   return (
     <div className="controls-row">
-      <button className="icon-btn" onClick={onPlayPrev} aria-label="上一曲">
+      <button className="icon-btn" onClick={onPlayPrev} aria-label="上一曲" id="prev-btn" name="prev">
         <Icon name="prev" />
       </button>
-      <button className="icon-btn icon-btn-primary" onClick={onTogglePlay} aria-label="播放/暂停">
+      <button className="icon-btn icon-btn-primary" onClick={onTogglePlay} aria-label="播放/暂停" id="play-pause-btn" name="play-pause">
         {isPlaying ? <Icon name="pause" /> : <Icon name="play" />}
       </button>
-      <button className="icon-btn" onClick={onPlayNext} aria-label="下一曲">
+      <button className="icon-btn" onClick={onPlayNext} aria-label="下一曲" id="next-btn" name="next">
         <Icon name="next" />
       </button>
       <button 
@@ -31,6 +31,8 @@ export default function Controls({
         onClick={onToggleShuffle} 
         aria-label="随机列表播放" 
         aria-pressed={shuffle}
+        id="shuffle-btn"
+        name="shuffle"
       >
         <Icon name={shuffle ? 'shuffle_on' : 'shuffle'} />
       </button>
@@ -39,6 +41,8 @@ export default function Controls({
         onClick={onToggleLoop} 
         aria-label="单曲循环" 
         aria-pressed={loopMode !== 'off'}
+        id="loop-btn"
+        name="loop"
       >
         <Icon name={loopMode !== 'off' ? 'repeat_on' : 'repeat'} />
       </button>
@@ -47,6 +51,8 @@ export default function Controls({
           className="icon-btn" 
           onClick={onToggleMute} 
           aria-label="静音"
+          id="mute-btn"
+          name="mute"
         >
           <Icon name={muted ? 'volume_muted' : 'volume'} />
         </button>
