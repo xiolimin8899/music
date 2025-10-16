@@ -1,100 +1,52 @@
 {
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "outputDirectory": "./dist",
-  "nodeVersion": "22.11.0",
-  "framework": "vite",
-  "buildSettings": {
-    "buildCommand": "npm run build",
-    "installCommand": "npm install",
-    "outputDirectory": "./dist"
-  },
-  "functions": {
-    "nodeVersion": "22.11.0"
-  },
-  "redirects": [
+  "version": 2,
+  "name": "music",
+  "builds": [
     {
-      "source": "/music",
-      "destination": "/",
-      "statusCode": 301
-    },
-    {
-      "source": "/player",
-      "destination": "/",
-      "statusCode": 301
-    },
-    {
-      "source": "/index",
-      "destination": "/",
-      "statusCode": 301
-    },
-    {
-      "source": "/home",
-      "destination": "/",
-      "statusCode": 301
-    },
-    {
-      "source": "/api/music",
-      "destination": "/api/music/list",
-      "statusCode": 301
-    },
-    {
-      "source": "/api/upload",
-      "destination": "/api/upload",
-      "statusCode": 200
-    },
-    {
-      "source": "/api/audio",
-      "destination": "/api/audio",
-      "statusCode": 200
-    },
-    {
-      "source": "/api/delete",
-      "destination": "/api/delete",
-      "statusCode": 200
-    },
-    {
-      "source": "/api/exists",
-      "destination": "/api/exists",
-      "statusCode": 200
-    },
-    {
-      "source": "/api/fetch",
-      "destination": "/api/fetch",
-      "statusCode": 200
-    },
-    {
-      "source": "/api/webdav",
-      "destination": "/api/webdav",
-      "statusCode": 200
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/*",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
-      ]
+      "src": "/api/(.*)",
+      "dest": "/edge-functions/api/$1"
     },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "functions": {
+    "edge-functions/api/audio.js": {
+      "maxDuration": 30,
+      "memory": 128
+    },
+    "edge-functions/api/upload.js": {
+      "maxDuration": 60,
+      "memory": 256
+    },
+    "edge-functions/api/delete.js": {
+      "maxDuration": 30,
+      "memory": 128
+    },
+    "edge-functions/api/exists.js": {
+      "maxDuration": 30,
+      "memory": 128
+    },
+    "edge-functions/api/fetch.js": {
+      "maxDuration": 30,
+      "memory": 128
+    },
+    "edge-functions/api/webdav.js": {
+      "maxDuration": 30,
+      "memory": 128
+    }
+  },
+  "headers": [
     {
       "source": "/api/audio",
       "headers": [
@@ -133,7 +85,7 @@
       ]
     },
     {
-      "source": "/api/webdav",
+      "source": "/api/upload",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
@@ -145,24 +97,16 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With, X-Target-URL, X-Proxy-Type"
+          "value": "Content-Type, Authorization"
         },
         {
           "key": "Cache-Control",
           "value": "no-store, no-cache, must-revalidate"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
         }
       ]
     },
     {
-      "source": "/api/*",
+      "source": "/api/(delete|exists|fetch|webdav)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
@@ -170,11 +114,11 @@
         },
         {
           "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
+          "value": "GET, POST, DELETE, OPTIONS"
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With"
+          "value": "Content-Type, Authorization"
         },
         {
           "key": "Cache-Control",
@@ -183,67 +127,20 @@
       ]
     },
     {
-      "source": "/assets/*",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/javascript; charset=utf-8"
         }
       ]
     },
     {
-      "source": "/*.js",
+      "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|webp|woff|woff2|ttf|eot))",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/javascript; charset=utf-8"
-        }
-      ]
-    },
-    {
-      "source": "/*.css",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Content-Type",
-          "value": "text/css; charset=utf-8"
-        }
-      ]
-    },
-    {
-      "source": "/*.webp",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Content-Type",
-          "value": "image/webp"
-        }
-      ]
-    },
-    {
-      "source": "/*.mp3",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Content-Type",
-          "value": "audio/mpeg"
         }
       ]
     },
@@ -255,8 +152,8 @@
           "value": "no-cache, no-store, must-revalidate"
         },
         {
-          "key": "Content-Type",
-          "value": "application/javascript; charset=utf-8"
+          "key": "Service-Worker-Allowed",
+          "value": "/"
         }
       ]
     },
@@ -269,130 +166,22 @@
         },
         {
           "key": "Content-Type",
-          "value": "application/json; charset=utf-8"
-        }
-      ]
-    },
-    {
-      "source": "/favicon.ico",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        },
-        {
-          "key": "Content-Type",
-          "value": "image/webp"
+          "value": "application/manifest+json"
         }
       ]
     }
   ],
   "rewrites": [
     {
-      "source": "/sw.js",
-      "destination": "/sw.js"
-    },
-    {
-      "source": "/manifest.json",
-      "destination": "/manifest.json"
-    },
-    {
-      "source": "/assets/*",
-      "destination": "/assets/:splat"
-    },
-    {
-      "source": "/images/*",
-      "destination": "/images/:splat"
-    },
-    {
-      "source": "/covers/*",
-      "destination": "/covers/:splat"
-    },
-    {
-      "source": "/music/*",
-      "destination": "/music/:splat"
-    },
-    {
-      "source": "/favicon.ico",
-      "destination": "/images/logo.webp"
-    },
-    {
-      "source": "/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/api/music",
-      "destination": "/api/music/list"
-    },
-    {
-      "source": "/api/audio/*",
-      "destination": "/api/audio/:splat"
-    },
-    {
-      "source": "/api/upload/*",
-      "destination": "/api/upload/:splat"
-    },
-    {
-      "source": "/api/delete/*",
-      "destination": "/api/delete/:splat"
-    },
-    {
-      "source": "/api/exists/*",
-      "destination": "/api/exists/:splat"
-    },
-    {
-      "source": "/api/fetch/*",
-      "destination": "/api/fetch/:splat"
-    },
-    {
-      "source": "/api/webdav/*",
-      "destination": "/api/webdav/:splat"
-    },
-    {
-      "source": "/((?!api|assets|images|covers|music|sw\\.js|manifest\\.json|favicon\\.ico).*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
-  "caches": [
-    {
-      "source": "/api/*",
-      "cacheTtl": 0
-    },
-    {
-      "source": "/assets/*",
-      "cacheTtl": 31536000
-    },
-    {
-      "source": "/images/*",
-      "cacheTtl": 31536000
-    },
-    {
-      "source": "/*.js",
-      "cacheTtl": 31536000
-    },
-    {
-      "source": "/*.css",
-      "cacheTtl": 31536000
-    },
-    {
-      "source": "/*.webp",
-      "cacheTtl": 31536000
-    },
-    {
-      "source": "/*.mp3",
-      "cacheTtl": 31536000
-    },
-    {
-      "source": "/sw.js",
-      "cacheTtl": 0
-    },
-    {
-      "source": "/manifest.json",
-      "cacheTtl": 0
-    },
-    {
-      "source": "/((?!api|assets|images|covers|music|sw\\.js|manifest\\.json|favicon\\.ico).*)",
-      "cacheTtl": 0
-    }
-  ]
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": "vite"
 }
