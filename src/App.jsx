@@ -193,7 +193,7 @@ export default function App() {
       </Suspense>
       <Suspense fallback={
         <div className="search-bar" style={{ height: '44px', minHeight: '44px' }}>
-          <input className="search-input" placeholder="搜索音乐..." disabled id="search-fallback" name="search-fallback" aria-label="搜索音乐（加载中）" />
+          <input className="search-input" placeholder="搜索歌曲或歌手..." disabled id="search-fallback" name="search-fallback" aria-label="搜索歌曲或歌手（加载中）" />
         </div>
       }>
         <SearchBar value={query} onChange={setQuery} />
