@@ -1104,7 +1104,7 @@ footer a {
   cursor: pointer;
   transition: color .15s ease, transform .02s ease;
 }
-.icon-btn:hover { color: #ffffff; }
+.icon-btn:hover { color: #ff8fb3; }
 .icon-btn:active { transform: translateY(1px); }
 .icon-btn.active { color: #ff8fb3; }
 .icon-btn-primary { color: #ffffff; }
