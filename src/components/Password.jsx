@@ -47,12 +47,12 @@ export default function Password({ open, title, message, onConfirm, onCancel, on
                   setError('')
                 }}
                 autoFocus
+                id="admin-password"
+                name="admin-password"
                 autoComplete="new-password"
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
-                name="admin-password"
-                id="admin-password"
                 inputMode="text"
               />
               {error && (
@@ -64,8 +64,8 @@ export default function Password({ open, title, message, onConfirm, onCancel, on
           </form>
         </div>
         <div className="modal-actions">
-          <button type="button" className="btn btn-ghost" onClick={handleCancel}>取消</button>
-          <button type="button" className="btn-danger" onClick={handleSubmit}>确认删除</button>
+          <button type="button" className="btn btn-ghost" id="cancel-password-btn" name="cancel-password" onClick={handleCancel}>取消</button>
+          <button type="button" className="btn-danger" id="confirm-delete-btn" name="confirm-delete" onClick={handleSubmit}>确认删除</button>
         </div>
       </div>
     </div>
