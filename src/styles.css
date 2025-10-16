@@ -865,14 +865,14 @@ footer a {
 
   /* 移动端虚拟播放列表样式 */
   .virtual-playlist { 
-    height: calc(100vh - 280px);
-    min-height: calc(100vh - 280px);
-    max-height: calc(100vh - 280px);
+    height: calc(100vh - 300px);
+    min-height: calc(100vh - 300px);
+    max-height: calc(100vh - 300px);
     margin-bottom: 0;
     margin-top: 0;
   }
   .virtual-scroll-container { 
-    max-height: calc(100vh - 280px); 
+    max-height: calc(100vh - 300px); 
   }
   .playlist-item { 
     grid-template-columns: 20px 1fr auto; 
