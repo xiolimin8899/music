@@ -873,8 +873,120 @@ app.post('/api/webdav', async (req, res) => {
         errors 
       })
     } else if (action === 'restore') {
-
-      res.status(501).json({ error: 'WebDAV restore not implemented yet' })
+      // 实现WebDAV恢复功能：从WebDAV下载文件并上传到GitHub
+      await ensureWebdavDir({ baseUrl: wUrl, user: wUser, pass: wPass })
+      
+      // 获取WebDAV中的文件列表
+      let webdavFiles = []
+      try {
+        const url = resolveMusicBase(wUrl).replace(/\/+$/g, '') + '/'
+        const res = await fetch(url, {
+          method: 'PROPFIND',
+          headers: {
+            'Depth': '1',
+            'Authorization': buildBasicAuth(wUser, wPass)
+          }
+        })
+        if (res.ok) {
+          const text = await res.text()
+          const hrefs = Array.from(text.matchAll(/<\s*[^:>]*:?href\s*>\s*([^<]+)\s*<\s*\/\s*[^:>]*:?href\s*>/ig)).map(m => m[1])
+          try {
+            const base = new URL(url)
+            for (const h of hrefs) {
+              try {
+                const u = new URL(h, base)
+                const pathname = decodeURIComponent(u.pathname)
+                const segs = pathname.split('/').filter(Boolean)
+                const last = segs.pop() || ''
+                if (last && isAudio(last)) {
+                  webdavFiles.push({ name: last, download_url: u.toString() })
+                }
+              } catch {}
+            }
+          } catch {}
+        }
+      } catch {}
+      
+      if (!webdavFiles.length) {
+        return res.json({ ok: true, total: 0, restored: 0, message: 'No audio files in WebDAV' })
+      }
+      
+      // 获取GitHub仓库中现有的文件列表
+      let existingNames = []
+      try {
+        const files = await listGithubMusic({ repoFull, token, branch, proxyFetch })
+        existingNames = files.map(f => f.name)
+      } catch {}
+      
+      const existingSet = new Set(existingNames || [])
+      const start = Math.max(0, Number(cursor) || 0)
+      const step = Math.max(1, Math.min(Number(limit) || 3, 10))
+      const slice = webdavFiles.slice(start, start + step)
+      let done = 0
+      let skipped = 0
+      const errors = []
+      
+      for (const f of slice) {
+        const name = f.name
+        try {
+          if (existingSet.has(name)) {
+            skipped++
+            continue
+          }
+          
+          // 从WebDAV下载文件
+          const downloadRes = await fetch(f.download_url, {
+            headers: {
+              'Authorization': buildBasicAuth(wUser, wPass),
+              'User-Agent': 'web-music-player/0.1'
+            }
+          })
+          if (!downloadRes.ok) {
+            throw new Error(`WebDAV download failed: ${downloadRes.status}`)
+          }
+          const buf = new Uint8Array(await downloadRes.arrayBuffer())
+          
+          // 上传到GitHub
+          const content = Buffer.from(buf).toString('base64')
+          const uploadUrl = `https://api.github.com/repos/${repoFull}/contents/public/music/${encodeURIComponent(name)}`
+          const uploadRes = await proxyFetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github+json',
+              'User-Agent': 'web-music-player/0.1',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: `Add ${name} via WebDAV restore`,
+              content: content,
+              branch: branch
+            })
+          })
+          
+          if (!uploadRes.ok) {
+            const errorText = await uploadRes.text()
+            throw new Error(`GitHub upload failed: ${uploadRes.status} ${errorText}`)
+          }
+          
+          done++
+        } catch (e) {
+          errors.push({ file: name, error: e && e.message ? e.message : String(e) })
+        }
+      }
+      
+      const nextCursor = (start + step) < webdavFiles.length ? (start + step) : null
+      const processed = slice.length
+      const status = errors.length === processed ? 500 : (errors.length ? 207 : 200)
+      res.status(status).json({ 
+        ok: errors.length === 0, 
+        total: webdavFiles.length, 
+        processed, 
+        restored: done, 
+        skipped, 
+        nextCursor, 
+        errors 
+      })
     } else {
       res.status(400).json({ error: 'Unknown action' })
     }
