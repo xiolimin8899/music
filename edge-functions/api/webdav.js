@@ -88,16 +88,27 @@ function joinUrl(base, name) {
 
 async function ensureWebdavDir({ baseUrl, user, pass }) {
   const url = resolveMusicBase(baseUrl) + '/'
-  const res = await fetch(url, {
-    method: 'MKCOL',
-    headers: {
-      'Authorization': buildBasicAuth(user, pass),
-      'Content-Length': '0'
-    }
-  })
+  
+  try {
+    const res = await fetch(url, {
+      method: 'MKCOL',
+      headers: {
+        'Authorization': buildBasicAuth(user, pass),
+        'Content-Length': '0'
+      }
+    })
 
-  if (!(res.status === 201 || res.status === 405 || res.status === 409 || res.status === 301 || res.status === 302)) {
-    if (!res.ok) throw new Error(`WebDAV MKCOL failed: ${res.status} ${await res.text()}`)
+    // 检查各种成功状态码
+    if (!(res.status === 201 || res.status === 405 || res.status === 409 || res.status === 301 || res.status === 302)) {
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => '')
+        console.log(`[webdav] MKCOL failed: ${res.status} ${errorText}`)
+        // 不抛出错误，继续执行，因为目录可能已经存在
+      }
+    }
+  } catch (error) {
+    console.log(`[webdav] MKCOL error: ${error.message}`)
+    // 不抛出错误，继续执行
   }
 }
 
@@ -253,16 +264,48 @@ export default async function handler(req, res) {
       // 获取WebDAV中的文件列表
       let webdavFiles = []
       try {
-        const url = resolveMusicBase(wUrl).replace(/\/+$/g, '') + '/'
-        const res = await fetch(url, {
+        const baseUrl = resolveMusicBase(wUrl)
+        const url = baseUrl.replace(/\/+$/g, '') + '/'
+        
+        // 首先尝试使用 PROPFIND 方法
+        let res = await fetch(url, {
           method: 'PROPFIND',
           headers: {
             'Depth': '1',
-            'Authorization': buildBasicAuth(wUser, wPass)
+            'Authorization': buildBasicAuth(wUser, wPass),
+            'Content-Type': 'application/xml'
           }
         })
+        
+        // 如果 PROPFIND 失败，尝试使用 GET 方法检查目录
+        if (!res.ok && res.status === 405) {
+          console.log('[webdav] PROPFIND not supported, trying alternative method')
+          // 尝试直接访问目录，看是否返回目录列表
+          res = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': buildBasicAuth(wUser, wPass)
+            }
+          })
+        }
+        
+        // 如果还是失败，尝试使用 OPTIONS 方法检查支持的方法
+        if (!res.ok && res.status === 405) {
+          console.log('[webdav] GET also failed, checking supported methods')
+          const optionsRes = await fetch(url, {
+            method: 'OPTIONS',
+            headers: {
+              'Authorization': buildBasicAuth(wUser, wPass)
+            }
+          })
+          console.log('[webdav] OPTIONS response:', optionsRes.status, optionsRes.headers.get('Allow'))
+        }
+        
         if (res.ok) {
           const text = await res.text()
+          console.log('[webdav] WebDAV response:', text.substring(0, 500))
+          
+          // 解析 XML 响应中的 href
           const hrefs = Array.from(text.matchAll(/<\s*[^:>]*:?href\s*>\s*([^<]+)\s*<\s*\/\s*[^:>]*:?href\s*>/ig)).map(m => m[1])
           try {
             const base = new URL(url)
@@ -278,11 +321,42 @@ export default async function handler(req, res) {
               } catch {}
             }
           } catch {}
+        } else {
+          console.log('[webdav] WebDAV list failed:', res.status, await res.text().catch(() => ''))
         }
-      } catch {}
+      } catch (error) {
+        console.log('[webdav] WebDAV list error:', error.message)
+      }
+      
+      // 如果无法获取 WebDAV 文件列表，尝试从 GitHub 获取文件列表并检查 WebDAV 中是否存在
+      if (!webdavFiles.length) {
+        console.log('[webdav] No files found via WebDAV listing, trying alternative approach')
+        try {
+          const githubFiles = await listGithubMusic({ repoFull, token, branch, proxyFetch })
+          console.log(`[webdav] Found ${githubFiles.length} files in GitHub repo`)
+          
+          // 检查这些文件是否在 WebDAV 中存在
+          for (const file of githubFiles.slice(0, 10)) { // 限制检查前10个文件
+            try {
+              const webdavUrl = joinUrl(wUrl, file.name)
+              const checkRes = await fetch(webdavUrl, {
+                method: 'HEAD',
+                headers: {
+                  'Authorization': buildBasicAuth(wUser, wPass)
+                }
+              })
+              if (checkRes.ok) {
+                webdavFiles.push({ name: file.name, download_url: webdavUrl })
+              }
+            } catch {}
+          }
+        } catch (error) {
+          console.log('[webdav] Alternative approach failed:', error.message)
+        }
+      }
       
       if (!webdavFiles.length) {
-        return res.status(200).json({ ok: true, total: 0, restored: 0, message: 'No audio files in WebDAV' })
+        return res.status(200).json({ ok: true, total: 0, restored: 0, message: 'No audio files found in WebDAV' })
       }
       
       // 获取GitHub仓库中现有的文件列表
