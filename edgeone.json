@@ -206,5 +206,55 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/assets/*",
+      "destination": "/assets/:splat"
+    },
+    {
+      "source": "/covers/*",
+      "destination": "/covers/:splat"
+    },
+    {
+      "source": "/music/*",
+      "destination": "/music/:splat"
+    },
+    {
+      "source": "/api/music",
+      "destination": "/api/music/list"
+    },
+    {
+      "source": "/api/audio/*",
+      "destination": "/api/audio"
+    },
+    {
+      "source": "/api/upload/*",
+      "destination": "/api/upload"
+    },
+    {
+      "source": "/api/delete/*",
+      "destination": "/api/delete"
+    },
+    {
+      "source": "/api/exists/*",
+      "destination": "/api/exists"
+    },
+    {
+      "source": "/api/fetch/*",
+      "destination": "/api/fetch"
+    },
+    {
+      "source": "/favicon.ico",
+      "destination": "/images/logo.webp"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/public/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/public/sitemap.xml"
+    }
   ]
 }
