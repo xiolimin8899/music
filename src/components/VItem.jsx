@@ -161,7 +161,7 @@ export default function VItem({
             verticalAlign: 'baseline',
             fontFamily: 'inherit'
           }}
-          onMouseEnter={(e) => e.target.style.color = '#fda4af'}
+          onMouseEnter={(e) => e.target.style.color = '#ff8fb3'}
           onMouseLeave={(e) => e.target.style.color = 'var(--sub)'}
         >
           删除
