@@ -45,7 +45,7 @@ export default function App() {
 
   const loadManifestData = async () => {
     try {
-      const data = await handleAsyncError(loadManifest(), '清单加载')
+      const data = await handleAsyncError(() => loadManifest(), '清单加载')
       const finalList = processTracks(data)
       setTracks(finalList)
       setLoading(false)
@@ -193,7 +193,7 @@ export default function App() {
             setProgressTitle('导入中')
             setProgressMessage('正在读取仓库文件列表...')
             setProgressValue(10)
-            const items = await api.importFromRepo(gitRepo, gitToken, gitBranch, gitPath)
+            const items = await handleAsyncError(() => api.importFromRepo(gitRepo, gitToken, gitBranch, gitPath), '仓库导入')
             const allFiles = Array.isArray(items) ? items.filter(it => it && it.type === 'file') : []
             const audioExts = ['.mp3', '.flac', '.wav', '.aac', '.m4a', '.ogg', '.opus', '.webm']
             const isExt = (name, exts) => exts.some(ext => name.toLowerCase().endsWith(ext))
@@ -242,7 +242,7 @@ export default function App() {
             setProgressTitle('导入中')
             setProgressMessage('正在拉取 API 歌单...')
             setProgressValue(20)
-            const data = await api.importFromApi(apiUrl)
+            const data = await handleAsyncError(() => api.importFromApi(apiUrl), 'API导入')
             const items = data.data
             const sanitized = []
             const localPreferred = ['a.webp','b.webp','c.webp','d.webp','e.webp','f.webp','g.webp','h.webp','i.webp','j.webp','k.webp','l.webp','m.webp','n.webp','o.webp','p.webp','q.webp','r.webp','s.webp','t.webp','u.webp','v.webp','w.webp','x.webp','y.webp','z.webp']
@@ -299,7 +299,7 @@ export default function App() {
           let skipped = 0
             const step = 3
             while (true) {
-              const data = await api.webdavUpload(cursor, step)
+              const data = await handleAsyncError(() => api.webdavUpload(cursor, step), 'WebDAV上传')
               total = data.total || total
               uploaded += data.uploaded || 0
             skipped += data.skipped || 0
@@ -332,7 +332,7 @@ export default function App() {
           let skipped = 0
             const step = 3
             while (true) {
-              const data = await api.webdavRestore(cursor, step)
+              const data = await handleAsyncError(() => api.webdavRestore(cursor, step), 'WebDAV恢复')
               total = data.total || total
               restored += data.restored || 0
             skipped += data.skipped || 0
