@@ -2,19 +2,52 @@ const CACHE_NAME = 'music-v1';
 const STATIC_CACHE = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/src/main.jsx',
-  '/src/App.jsx',
-  '/src/styles.css'
+  '/manifest.json'
+];
+
+const IMAGE_CACHE = [
+  '/images/logo.webp',
+  '/images/background.webp',
+  '/images/cd.webp',
+  '/images/cd_tou.webp'
 ];
 
 const API_CACHE = 'api-cache-v1';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(STATIC_CACHE))
-      .then(() => self.skipWaiting())
+    Promise.all([
+      // 缓存静态资源
+      caches.open(CACHE_NAME).then(cache => {
+        return Promise.allSettled(
+          STATIC_CACHE.map(url => 
+            cache.add(url).catch(err => {
+              console.warn(`静态资源缓存失败: ${url}`, err);
+              return null;
+            })
+          )
+        );
+      }),
+      // 缓存图片资源（可选，失败不影响安装）
+      caches.open(CACHE_NAME).then(cache => {
+        return Promise.allSettled(
+          IMAGE_CACHE.map(url => 
+            cache.add(url).catch(err => {
+              console.warn(`图片资源缓存失败: ${url}`, err);
+              return null;
+            })
+          )
+        );
+      })
+    ])
+    .then(() => {
+      console.log('Service Worker 安装完成');
+      self.skipWaiting();
+    })
+    .catch(err => {
+      console.error('Service Worker 安装失败:', err);
+      self.skipWaiting();
+    })
   );
 });
 
