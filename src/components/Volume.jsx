@@ -13,6 +13,8 @@ export default function Volume({
         className="icon-btn" 
         onClick={onToggleMute} 
         aria-label="静音"
+        id="mute-toggle-btn"
+        name="mute-toggle"
       >
         <Icon name={muted ? 'volume_muted' : 'volume'} />
       </button>
