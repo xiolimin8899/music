@@ -242,6 +242,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               <button
                 type="button"
                 className="btn-favorite"
+                id="toggle-favorites-btn"
+                name="toggle-favorites"
                 onClick={() => {
                   // 切换歌单显示状态
                   if (window.toggleFavorites) {
@@ -291,6 +293,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
               <button
                 type="button"
                 className="btn-sakura"
+                id="add-song-btn"
+                name="add-song"
                 onClick={handleAddSong}
               >添加歌曲</button>
             </div>
@@ -314,8 +318,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             <input className="form-input" type="url" placeholder="https://example.com/video" value={songMvUrl} onChange={(e) => setSongMvUrl(e.target.value)} id="song-mv-url" name="song-mv-url" />
           </div>
           <div className="form-actions" style={{ gap: 10 }}>
-            <button type="button" className="btn-sakura" onClick={handleAddSong}>添加歌曲</button>
-            <button type="button" className="btn-sakura" onClick={() => onResetPlaylist && onResetPlaylist()}>恢复默认</button>
+            <button type="button" className="btn-sakura" id="add-song-url-btn" name="add-song-url" onClick={handleAddSong}>添加歌曲</button>
+            <button type="button" className="btn-sakura" id="reset-playlist-btn" name="reset-playlist" onClick={() => onResetPlaylist && onResetPlaylist()}>恢复默认</button>
           </div>
           <hr className="hr" />
           <div className="section-title">导入GitHub仓库歌曲</div>
@@ -348,7 +352,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             <input className="form-input" type="text" placeholder="public/music 或 music 或 ." value={gitPath} onChange={(e) => setGitPath(e.target.value)} id="git-path" name="git-path" />
           </div>
           <div className="form-actions">
-            <button type="button" className="btn-sakura" onClick={() => onImportRepo && onImportRepo({ gitRepo, gitToken, gitBranch, gitPath })}>导入歌曲</button>
+            <button type="button" className="btn-sakura" id="import-repo-btn" name="import-repo" onClick={() => onImportRepo && onImportRepo({ gitRepo, gitToken, gitBranch, gitPath })}>导入歌曲</button>
           </div>
           <hr className="hr" />
           <div className="section-title">导入API歌单</div>
@@ -357,14 +361,14 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             <input className="form-input" type="url" placeholder="https://player.zxlwq.dpdns.org" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} id="api-url" name="api-url" />
           </div>
           <div className="form-actions">
-            <button type="button" className="btn-sakura" onClick={() => onImportApi && onImportApi({ apiUrl })}>导入歌曲</button>
+            <button type="button" className="btn-sakura" id="import-api-btn" name="import-api" onClick={() => onImportApi && onImportApi({ apiUrl })}>导入歌曲</button>
           </div>
           <hr className="hr" />
           <div className="section-title">WebDAV</div>
           <div className="form-group">
             <div className="form-actions" style={{ gap: 10 }}>
-              <button type="button" className="btn-sakura" onClick={() => onWebDavUpload && onWebDavUpload()}>上传</button>
-              <button type="button" className="btn-sakura" onClick={() => onWebDavRestore && onWebDavRestore()}>恢复</button>
+              <button type="button" className="btn-sakura" id="webdav-upload-btn" name="webdav-upload" onClick={() => onWebDavUpload && onWebDavUpload()}>上传</button>
+              <button type="button" className="btn-sakura" id="webdav-restore-btn" name="webdav-restore" onClick={() => onWebDavRestore && onWebDavRestore()}>恢复</button>
             </div>
           </div>
           <hr className="hr" />
@@ -487,6 +491,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             <button
               type="button"
               className="btn-sakura"
+              id="apply-appearance-btn"
+              name="apply-appearance"
               onClick={() => {
                 try {
                   localStorage.setItem('ui.fontFamily', fontFamily || '')
@@ -563,6 +569,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             <button
               type="button"
               className="btn-sakura"
+              id="save-audio-settings-btn"
+              name="save-audio-settings"
               onClick={() => {
                 try {
                   localStorage.setItem('ui.audioLoadMethod', audioLoadMethod || '')
@@ -728,6 +736,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           <div className="cache-actions">
             <button
               className="btn-sakura"
+              id="save-cache-config-btn"
+              name="save-cache-config"
               onClick={() => {
                 setMaxCacheSize(config.maxCacheSize)
                 alert('配置已保存并应用！')
@@ -737,6 +747,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
             </button>
             <button
               className="btn-sakura"
+              id="clear-cache-btn"
+              name="clear-cache"
               onClick={() => {
                 if (confirm('确定要清理所有缓存吗？')) {
                   clearCache()
@@ -749,7 +761,7 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
           </div>
         </div>
         <div className="modal-actions">
-          <button type="button" className="btn-danger" onClick={onClose}>关闭</button>
+          <button type="button" className="btn-danger" id="close-settings-btn" name="close-settings" onClick={onClose}>关闭</button>
         </div>
     </div>
     </>
