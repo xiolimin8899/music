@@ -5,6 +5,7 @@ const VPlaylist = React.lazy(() => import('./components/VPlaylist.jsx'))
 const Password = React.lazy(() => import('./components/Password.jsx'))
 const Settings = React.lazy(() => import('./components/Settings.jsx'))
 const Progress = React.lazy(() => import('./components/Progress.jsx'))
+const Dialog = React.lazy(() => import('./components/Dialog.jsx'))
 import ErrorBoundary from './components/Bondary'
 import { useErrorNotification } from './components/Notifica'
 import { useError } from './hooks/useError'
@@ -358,50 +359,16 @@ export default function App() {
       </Suspense>
       {progressOpen && (
         <Suspense fallback={<div style={{ display: 'none' }}></div>}>
-          <div className="progress-dialog" style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            padding: '20px',
-            borderRadius: '8px',
-            zIndex: 1000,
-            minWidth: '300px',
-            textAlign: 'center'
-          }}>
-            <h3>{progressTitle}</h3>
-            <p>{progressMessage}</p>
-            <div style={{
-              width: '100%',
-              height: '4px',
-              background: 'rgba(255, 255, 255, 0.3)',
-              borderRadius: '2px',
-              margin: '10px 0'
-            }}>
-              <div style={{
-                width: `${progressValue}%`,
-                height: '100%',
-                background: '#ff6b6b',
-                borderRadius: '2px',
-                transition: 'width 0.3s ease'
-              }}></div>
-            </div>
-            <button 
-              onClick={() => setProgressOpen(false)}
-              style={{
-                background: 'transparent',
-                border: '1px solid white',
-                color: 'white',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              取消
-            </button>
-          </div>
+          <Dialog
+            open={progressOpen}
+            title={progressTitle}
+            message={progressMessage}
+            value={progressValue}
+            onClose={() => setProgressOpen(false)}
+            type="upload"
+            showCancel={true}
+            showAnimation={true}
+          />
         </Suspense>
       )}
       <footer style={{ 
