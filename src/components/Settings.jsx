@@ -238,7 +238,56 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
                 }
               }}
             />
-            <div className="form-actions" style={{ marginTop: 8 }}>
+            <div className="form-actions" style={{ marginTop: 8, display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn-favorite"
+                onClick={() => {
+                  // 切换歌单显示状态
+                  if (window.toggleFavorites) {
+                    window.toggleFavorites()
+                  }
+                }}
+                style={{
+                  background: 'linear-gradient(180deg, #ff8fb3, #ff69b4)',
+                  border: '1px solid #ff8fb3',
+                  color: '#fff',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  boxShadow: '0 6px 14px rgba(255,143,179,.35)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.filter = 'brightness(1.05)'
+                  e.target.style.transform = 'translateY(-1px)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.filter = 'brightness(1)'
+                  e.target.style.transform = 'translateY(0)'
+                }}
+                onMouseDown={(e) => {
+                  e.target.style.transform = 'translateY(1px)'
+                }}
+                onMouseUp={(e) => {
+                  e.target.style.transform = 'translateY(-1px)'
+                }}
+              >
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="currentColor" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                  style={{ marginRight: '6px', verticalAlign: 'middle' }}
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                切换收藏歌单
+              </button>
               <button
                 type="button"
                 className="btn-sakura"
