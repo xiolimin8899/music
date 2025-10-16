@@ -838,7 +838,7 @@ footer a {
   .track-title { 
     font-size: 17px; 
     text-align: left;
-    margin-left: -6px;
+    margin-left: 5px;
   }
   .track-sub { text-align: center; }
   .track-sub { font-size: 12px; }
