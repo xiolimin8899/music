@@ -442,6 +442,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
                   type="button"
                   className="btn-ghost"
                   style={{ fontSize: '12px', padding: '4px 8px' }}
+                  id="clear-bg-file-btn"
+                  name="clear-bg-file"
                   onClick={() => {
                     setLocalBgFile(null)
                     setLocalBgPreview('')
@@ -726,6 +728,8 @@ export default function Settings({ open, onClose, onAddSong, onImportRepo, onImp
                   checked={config.autoCleanup}
                   onChange={(e) => updateConfig({ autoCleanup: e.target.checked })}
                   disabled={!isEnabled}
+                  id="auto-cleanup-checkbox"
+                  name="auto-cleanup"
                 />
                 自动清理缓存
               </label>
