@@ -138,6 +138,8 @@ export default function VPlaylist({
         aria-label="定位到正在播放"
         onClick={locateNowPlaying}
         ref={locateBtnRef}
+        id="locate-fab-btn"
+        name="locate-fab"
         onMouseEnter={() => { 
           hoveringRef.current = true
           setShowLocate(true)
