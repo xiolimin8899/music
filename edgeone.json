@@ -67,6 +67,16 @@
       "source": "/api/webdav",
       "destination": "/api/webdav",
       "statusCode": 200
+    },
+    {
+      "source": "/sw.js",
+      "destination": "/sw.js",
+      "statusCode": 200
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/manifest.json",
+      "statusCode": 200
     }
   ],
   "headers": [
@@ -255,6 +265,36 @@
           "value": "nosniff"
         }
       ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -305,6 +345,14 @@
     {
       "source": "/api/webdav/*",
       "destination": "/api/webdav"
+    },
+    {
+      "source": "/sw.js",
+      "destination": "/sw.js"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
     },
     {
       "source": "/favicon.ico",
