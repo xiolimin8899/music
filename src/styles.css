@@ -76,11 +76,11 @@ select.form-input:focus { border-color: #6b7280; }
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: 12px;
-  height: 400px;
-  min-height: 400px;
-  max-height: 400px;
+  height: 500px;
+  min-height: 500px;
+  max-height: 500px;
   content-visibility: auto;
-  contain-intrinsic-size: 600px 400px;
+  contain-intrinsic-size: 600px 500px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
   contain: layout style;
   grid-area: playlist;
