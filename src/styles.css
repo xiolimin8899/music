@@ -698,7 +698,7 @@ footer a {
 .art-lg::before {
   content: '';
   position: absolute;
-  right: -32px;
+  right: -30px;
   top: 0;
   width: 64px;
   height: 64px;
