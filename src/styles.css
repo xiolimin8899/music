@@ -835,8 +835,11 @@ footer a {
     margin-left: -10px;
   }
   .meta { margin-left: 0; text-align: center; }
-  .track-title { font-size: 16px; }
-  .track-title { text-align: center; }
+  .track-title { 
+    font-size: 17px; 
+    text-align: left;
+    margin-left: -10px;
+  }
   .track-sub { text-align: center; }
   .track-sub { font-size: 12px; }
 
