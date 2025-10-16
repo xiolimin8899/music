@@ -104,6 +104,8 @@ export default function Playlist({ tracks, currentIndex, onSelect, onDelete }) {
                   className="delete-link"
                   onClick={(e) => { e.stopPropagation(); onDelete && onDelete(t.url) }}
                   aria-label={`删除 ${song}${artist ? ' - ' + artist : ''}`}
+                  id={`delete-song-btn-${t.url}`}
+                  name="delete-song"
                 >
                   删除
                 </button>
@@ -125,6 +127,8 @@ export default function Playlist({ tracks, currentIndex, onSelect, onDelete }) {
         type="button"
         className={`locate-fab ${showLocate ? 'visible' : ''}`}
         aria-label="定位到正在播放"
+        id="locate-fab-btn"
+        name="locate-fab"
         onClick={locateNowPlaying}
         ref={locateBtnRef}
         onMouseEnter={() => { hoveringRef.current = true; setShowLocate(true) }}
