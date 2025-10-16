@@ -1,6 +1,91 @@
 export default {
   async fetch(request, env, ctx) {
     const startTime = Date.now();
+    
+    // 检测部署平台
+    const detectPlatform = () => {
+      const userAgent = request.headers.get('User-Agent') || '';
+      const host = request.headers.get('Host') || '';
+      const cfRay = request.headers.get('CF-Ray');
+      const xForwardedFor = request.headers.get('X-Forwarded-For');
+      
+      // Cloudflare Workers 检测（代理服务）
+      if (cfRay || host.includes('workers.dev') || host.includes('cloudflare')) {
+        return 'cloudflare-workers';
+      }
+      
+      // Cloudflare Pages 检测（主应用）
+      if (host.includes('pages.dev') || userAgent.includes('Cloudflare-Pages')) {
+        return 'cloudflare-pages';
+      }
+      
+      // Vercel 检测
+      if (host.includes('vercel.app') || host.includes('vercel.com')) {
+        return 'vercel';
+      }
+      
+      // EdgeOne Pages 检测
+      if (host.includes('edgeone.app') || userAgent.includes('EdgeOne')) {
+        return 'edgeone';
+      }
+      
+      // Docker 检测
+      if (xForwardedFor || userAgent.includes('Docker')) {
+        return 'docker';
+      }
+      
+      // 默认平台
+      return 'unknown';
+    };
+    
+    const platform = detectPlatform();
+    
+    // 平台特定配置
+    const getPlatformConfig = (platform) => {
+      const configs = {
+        'cloudflare-workers': {
+          cacheTtl: 86400,        // 24小时缓存（Workers边缘缓存）
+          preloadSize: 1048576,   // 1MB预加载
+          timeout: 15000,         // 15秒超时
+          retries: 1,             // 1次重试
+          description: 'Cloudflare Workers 代理服务'
+        },
+        'cloudflare-pages': {
+          cacheTtl: 43200,       // 12小时缓存（Pages应用缓存）
+          preloadSize: 2097152,   // 2MB预加载
+          timeout: 12000,         // 12秒超时
+          retries: 2,             // 2次重试
+          description: 'Cloudflare Pages 主应用'
+        },
+        vercel: {
+          cacheTtl: 7200,
+          preloadSize: 2097152,
+          timeout: 10000,
+          retries: 1
+        },
+        edgeone: {
+          cacheTtl: 3600,
+          preloadSize: 1048576,
+          timeout: 12000,
+          retries: 2
+        },
+        docker: {
+          cacheTtl: 1800,
+          preloadSize: 524288,
+          timeout: 8000,
+          retries: 1
+        },
+        unknown: {
+          cacheTtl: 3600,
+          preloadSize: 1048576,
+          timeout: 10000,
+          retries: 1
+        }
+      };
+      return configs[platform] || configs.unknown;
+    };
+    
+    const platformConfig = getPlatformConfig(platform);
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -44,7 +129,11 @@ export default {
               'X-Cache-Status': 'HIT',
               'X-Processing-Time': `${Date.now() - startTime}ms`,
               'X-Cache-Source': 'Preload',
-              'X-Proxy-Platform': 'Cloudflare Workers'
+              'X-Proxy-Platform': platform === 'cloudflare-workers' ? 'Cloudflare Workers' : 
+                                 platform === 'cloudflare-pages' ? 'Cloudflare Pages' :
+                                 platform === 'vercel' ? 'Vercel Functions' :
+                                 platform === 'edgeone' ? 'EdgeOne Functions' :
+                                 platform === 'docker' ? 'Docker Container' : 'Multi-Platform Proxy'
             }
           });
           return response;
@@ -61,7 +150,11 @@ export default {
               'X-Cache-Status': 'HIT',
               'X-Processing-Time': `${Date.now() - startTime}ms`,
               'X-Cache-Source': 'Edge',
-              'X-Proxy-Platform': 'Cloudflare Workers'
+              'X-Proxy-Platform': platform === 'cloudflare-workers' ? 'Cloudflare Workers' : 
+                                 platform === 'cloudflare-pages' ? 'Cloudflare Pages' :
+                                 platform === 'vercel' ? 'Vercel Functions' :
+                                 platform === 'edgeone' ? 'EdgeOne Functions' :
+                                 platform === 'docker' ? 'Docker Container' : 'Multi-Platform Proxy'
             }
           });
           return response;
@@ -106,7 +199,7 @@ export default {
         reqHeaders.set('Origin', u.origin);
       } catch {}
 
-      const maxRetries = 1;
+      const maxRetries = platformConfig.retries;
       let lastError = null;
       let upstream = null;
       
@@ -114,7 +207,7 @@ export default {
         try {
           const controller = new AbortController();
 
-          const timeout = isGitHubRaw ? (isRangeRequest ? 10000 : 15000) : (isRangeRequest ? 5000 : 8000);
+          const timeout = isGitHubRaw ? (isRangeRequest ? platformConfig.timeout : platformConfig.timeout * 1.5) : (isRangeRequest ? platformConfig.timeout * 0.8 : platformConfig.timeout);
           const timeoutId = setTimeout(() => controller.abort(), timeout);
           
           upstream = await fetch(targetUrl, { 
@@ -141,7 +234,11 @@ export default {
             'content-type': 'application/json', 
             'access-control-allow-origin': '*', 
             'cache-control': 'no-store',
-            'X-Proxy-Platform': 'Cloudflare Workers'
+            'X-Proxy-Platform': platform === 'cloudflare-workers' ? 'Cloudflare Workers' : 
+                               platform === 'cloudflare-pages' ? 'Cloudflare Pages' :
+                               platform === 'vercel' ? 'Vercel Functions' :
+                               platform === 'edgeone' ? 'EdgeOne Functions' :
+                               platform === 'docker' ? 'Docker Container' : 'Multi-Platform Proxy'
           }
         });
       }
@@ -175,7 +272,7 @@ export default {
         const val = upstream.headers.get(h);
         if (val) respHeaders.set(h, val);
       });
-      respHeaders.set('Cache-Control', 'public, max-age=7200, must-revalidate');
+      respHeaders.set('Cache-Control', `public, max-age=${platformConfig.cacheTtl}, must-revalidate`);
       respHeaders.set('Access-Control-Allow-Origin', '*');
       respHeaders.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
       respHeaders.set('Access-Control-Allow-Headers', 'Range, Content-Range, If-Range, If-Modified-Since');
@@ -186,7 +283,12 @@ export default {
       respHeaders.set('X-Retries', `${maxRetries}`);
       respHeaders.set('X-Cache-Status', 'MISS');
       respHeaders.set('X-Cache-Source', 'Origin');
-      respHeaders.set('X-Proxy-Platform', 'Cloudflare Workers');
+      respHeaders.set('X-Proxy-Platform', platform === 'cloudflare-workers' ? 'Cloudflare Workers' : 
+                                         platform === 'cloudflare-pages' ? 'Cloudflare Pages' :
+                                         platform === 'vercel' ? 'Vercel Functions' :
+                                         platform === 'edgeone' ? 'EdgeOne Functions' :
+                                         platform === 'docker' ? 'Docker Container' : 'Multi-Platform Proxy');
+      respHeaders.set('X-Deployment-Platform', platform);
 
       const statusCode = isRangeRequest && (upstream.status === 206 || upstream.headers.get('content-range')) ? 206 : upstream.status;
       const response = new Response(upstream.body, { status: statusCode, headers: respHeaders });
@@ -195,20 +297,20 @@ export default {
         ctx.waitUntil((async () => {
           try {
             const cacheResponse = response.clone();
-            cacheResponse.headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400');
-            cacheResponse.headers.set('X-Cache-TTL', '86400');
+            cacheResponse.headers.set('Cache-Control', `public, max-age=${platformConfig.cacheTtl}, s-maxage=${platformConfig.cacheTtl}`);
+            cacheResponse.headers.set('X-Cache-TTL', platformConfig.cacheTtl.toString());
             await cache.put(new Request(targetUrl, request), cacheResponse);
 
             try {
               const preloadHeaders = new Headers(reqHeaders);
-              preloadHeaders.set('Range', 'bytes=0-1048575');
-              const preloadResp = await fetch(targetUrl, { headers: preloadHeaders, signal: AbortSignal.timeout(5000) });
+              preloadHeaders.set('Range', `bytes=0-${platformConfig.preloadSize - 1}`);
+              const preloadResp = await fetch(targetUrl, { headers: preloadHeaders, signal: AbortSignal.timeout(platformConfig.timeout * 0.5) });
               if (preloadResp.ok && preloadResp.status === 206) {
-                const preloadCacheKey = new Request(`${targetUrl}?preload=1mb`, request);
+                const preloadCacheKey = new Request(`${targetUrl}?preload=${Math.round(platformConfig.preloadSize / 1024 / 1024)}mb`, request);
                 const preloadCacheResp = preloadResp.clone();
-                preloadCacheResp.headers.set('Cache-Control', 'public, max-age=3600');
-                preloadCacheResp.headers.set('X-Cache-TTL', '3600');
-                preloadCacheResp.headers.set('X-Preload', '2MB');
+                preloadCacheResp.headers.set('Cache-Control', `public, max-age=${Math.floor(platformConfig.cacheTtl * 0.5)}`);
+                preloadCacheResp.headers.set('X-Cache-TTL', Math.floor(platformConfig.cacheTtl * 0.5).toString());
+                preloadCacheResp.headers.set('X-Preload', `${Math.round(platformConfig.preloadSize / 1024 / 1024)}MB`);
                 await cache.put(preloadCacheKey, preloadCacheResp);
               }
             } catch {}
@@ -225,7 +327,12 @@ export default {
           'content-type': 'application/json', 
           'access-control-allow-origin': '*', 
           'cache-control': 'no-store',
-          'X-Proxy-Platform': 'Cloudflare Workers'
+          'X-Proxy-Platform': platform === 'cloudflare-workers' ? 'Cloudflare Workers' : 
+                             platform === 'cloudflare-pages' ? 'Cloudflare Pages' :
+                             platform === 'vercel' ? 'Vercel Functions' :
+                             platform === 'edgeone' ? 'EdgeOne Functions' :
+                             platform === 'docker' ? 'Docker Container' : 'Multi-Platform Proxy',
+          'X-Deployment-Platform': platform
         }
       });
     }
