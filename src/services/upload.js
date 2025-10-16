@@ -1,7 +1,7 @@
 import * as api from './api'
 import { persistAdd } from '../utils/storage'
 
-export const executeUpload = async (songUrl, songTitle, fileName, mvUrl, base64, contentType, suppressClose, tracks, setTracks, setQuery, setProgressOpen, setProgressTitle, setProgressMessage, setProgressValue, setSettingsOpen, handleError) => {
+export const executeUpload = async (songUrl, songTitle, fileName, mvUrl, base64, contentType, suppressClose, tracks, setTracks, query, setQuery, setProgressOpen, setProgressTitle, setProgressMessage, setProgressValue, setSettingsOpen, handleError) => {
   setProgressOpen(true)
   setProgressTitle('下载中')
   setProgressMessage(base64 ? '使用本地音频数据...' : '正在通过代理下载音频...')
