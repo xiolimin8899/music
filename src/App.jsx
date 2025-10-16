@@ -46,16 +46,17 @@ export default function App() {
 
   const loadManifestData = async () => {
     try {
-      const data = await handleAsyncError(() => loadManifest(), '清单加载')
+      const data = await loadManifest()
       const finalList = processTracks(data)
       setTracks(finalList)
       setLoading(false)
       await preloadAssets(finalList)
     } catch (e) {
-      const appError = handleError(e, '清单加载')
-      setError(appError.message || '清单加载错误')
+      console.error('清单加载错误:', e)
+      const errorMessage = e?.message || e?.toString() || '清单加载错误'
+      setError(errorMessage)
       setLoading(false)
-      addNotification(appError, { autoClose: true, duration: 5000 })
+      addNotification({ message: errorMessage }, { autoClose: true, duration: 5000 })
     }
   }
   
@@ -194,7 +195,7 @@ export default function App() {
             setProgressTitle('导入中')
             setProgressMessage('正在读取仓库文件列表...')
             setProgressValue(10)
-            const items = await handleAsyncError(() => api.importFromRepo(gitRepo, gitToken, gitBranch, gitPath), '仓库导入')
+            const items = await api.importFromRepo(gitRepo, gitToken, gitBranch, gitPath)
             const allFiles = Array.isArray(items) ? items.filter(it => it && it.type === 'file') : []
             const audioExts = ['.mp3', '.flac', '.wav', '.aac', '.m4a', '.ogg', '.opus', '.webm']
             const isExt = (name, exts) => exts.some(ext => name.toLowerCase().endsWith(ext))
@@ -214,9 +215,7 @@ export default function App() {
               const name = it.name || ''
               const base = name.replace(/\.[^.]+$/, '')
               const title = base.replace(/\s*-\s*/g, ' - ').replace(/_/g, ' ').replace(/\s{2,}/g, ' ').trim()
-              const rawPathSegs = [...segs, name]
-              const rawPath = rawPathSegs.map(encodeURIComponent).join('/')
-              const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${rawPath}`
+              const rawUrl = it.download_url || it.url || ''
               const localPreferred = ['a.webp','b.webp','c.webp','d.webp','e.webp','f.webp','g.webp','h.webp','i.webp','j.webp','k.webp','l.webp','m.webp','n.webp','o.webp','p.webp','q.webp','r.webp','s.webp','t.webp','u.webp','v.webp','w.webp','x.webp','y.webp','z.webp']
               const cover = `/covers/${localPreferred[i % localPreferred.length]}`
               added.push({ title, url: rawUrl, cover })
@@ -229,9 +228,9 @@ export default function App() {
             setProgressMessage('导入完成')
             setProgressValue(100)
           } catch (e) {
-            handleError(e, '仓库导入')
+            console.error('仓库导入错误:', e)
             setProgressTitle('失败')
-            setProgressMessage(e.message || '导入失败')
+            setProgressMessage(e?.message || e?.toString() || '导入失败')
           } finally {
             setTimeout(() => { setProgressOpen(false); setSettingsOpen(false) }, 1200)
           }
@@ -243,7 +242,7 @@ export default function App() {
             setProgressTitle('导入中')
             setProgressMessage('正在拉取 API 歌单...')
             setProgressValue(20)
-            const data = await handleAsyncError(() => api.importFromApi(apiUrl), 'API导入')
+            const data = await api.importFromApi(apiUrl)
             const items = data.data
             const sanitized = []
             const localPreferred = ['a.webp','b.webp','c.webp','d.webp','e.webp','f.webp','g.webp','h.webp','i.webp','j.webp','k.webp','l.webp','m.webp','n.webp','o.webp','p.webp','q.webp','r.webp','s.webp','t.webp','u.webp','v.webp','w.webp','x.webp','y.webp','z.webp']
@@ -269,9 +268,9 @@ export default function App() {
             setProgressMessage('API 歌单导入完成')
             setProgressValue(100)
           } catch (e) {
-            handleError(e, 'API导入')
+            console.error('API导入错误:', e)
             setProgressTitle('失败')
-            setProgressMessage(e.message || '导入失败')
+            setProgressMessage(e?.message || e?.toString() || '导入失败')
           } finally {
             setTimeout(() => { setProgressOpen(false); setSettingsOpen(false) }, 1200)
           }
@@ -300,7 +299,7 @@ export default function App() {
           let skipped = 0
             const step = 3
             while (true) {
-              const data = await handleAsyncError(() => api.webdavUpload(cursor, step), 'WebDAV上传')
+              const data = await api.webdavUpload(cursor, step)
               total = data.total || total
               uploaded += data.uploaded || 0
             skipped += data.skipped || 0
@@ -314,9 +313,9 @@ export default function App() {
             setProgressTitle('完成')
           setProgressMessage(`已上传 ${uploaded}/${total}，已跳过 ${skipped}`)
           } catch (e) {
-            handleError(e, 'WebDAV上传')
+            console.error('WebDAV上传错误:', e)
             setProgressTitle('失败')
-            setProgressMessage(e.message || 'WebDAV 上传失败')
+            setProgressMessage(e?.message || e?.toString() || 'WebDAV 上传失败')
           } finally {
             setTimeout(() => { setProgressOpen(false) }, 1200)
           }
@@ -333,7 +332,7 @@ export default function App() {
           let skipped = 0
             const step = 3
             while (true) {
-              const data = await handleAsyncError(() => api.webdavRestore(cursor, step), 'WebDAV恢复')
+              const data = await api.webdavRestore(cursor, step)
               total = data.total || total
               restored += data.restored || 0
             skipped += data.skipped || 0
@@ -348,9 +347,9 @@ export default function App() {
           setProgressMessage(`已恢复 ${restored}/${total}，已跳过 ${skipped}`)
             await loadManifestData()
           } catch (e) {
-            handleError(e, 'WebDAV恢复')
+            console.error('WebDAV恢复错误:', e)
             setProgressTitle('失败')
-            setProgressMessage(e.message || 'WebDAV 恢复失败')
+            setProgressMessage(e?.message || e?.toString() || 'WebDAV 恢复失败')
           } finally {
             setTimeout(() => { setProgressOpen(false) }, 1200)
           }
