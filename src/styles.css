@@ -1107,7 +1107,8 @@ footer a {
 .icon-btn:hover { color: #ffffff; }
 .icon-btn:active { transform: translateY(1px); }
 .icon-btn.active { color: #ff8fb3; }
-.icon-btn-primary { color: #ff8fb3; }
+.icon-btn-primary { color: #ffffff; }
+.icon-btn-primary:hover { color: #ff8fb3; }
 
 .icon-btn svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round }
 
