@@ -129,47 +129,62 @@ async function listGithubMusic({ repoFull, token, branch, path = 'public/music',
   return (Array.isArray(items) ? items : []).filter(it => it && it.type === 'file' && isAudio(it.name))
 }
 
-export default async function handler(req, res) {
+export async function onRequest(context) {
+  const { request, env } = context
+  
   // 设置CORS头
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Cache-Control', 'no-store')
-
-  if (req.method === 'OPTIONS') {
-    res.status(204).end()
-    return
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Cache-Control': 'no-store'
   }
 
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' })
-    return
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders })
+  }
+
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { 
+      status: 405, 
+      headers: { ...corsHeaders, 'content-type': 'application/json' } 
+    })
   }
 
   try {
-    const { action, cursor, limit } = req.body
-    const repoFull = process.env.GIT_REPO
-    const token = process.env.GIT_TOKEN
-    const branch = process.env.GIT_BRANCH || 'main'
-    const wUrl = process.env.WEBDAV_URL
-    const wUser = process.env.WEBDAV_USER
-    const wPass = process.env.WEBDAV_PASS
-    const proxyUrl = process.env.GIT_URL
+    const body = await request.json()
+    const { action, cursor, limit } = body
+    const repoFull = env.GIT_REPO
+    const token = env.GIT_TOKEN
+    const branch = env.GIT_BRANCH || 'main'
+    const wUrl = env.WEBDAV_URL
+    const wUser = env.WEBDAV_USER
+    const wPass = env.WEBDAV_PASS
+    const proxyUrl = env.GIT_URL
     const builtinProxyUrl = '/api/audio'
     const proxyFetch = createProxyFetch(proxyUrl, builtinProxyUrl)
 
     if (!repoFull || !token) {
-      return res.status(500).json({ error: 'Server not configured: GIT_REPO/GIT_TOKEN missing' })
+      return new Response(JSON.stringify({ error: 'Server not configured: GIT_REPO/GIT_TOKEN missing' }), { 
+        status: 500, 
+        headers: { ...corsHeaders, 'content-type': 'application/json' } 
+      })
     }
     if (!wUrl || !wUser || !wPass) {
-      return res.status(500).json({ error: 'Server not configured: WEBDAV_URL/WEBDAV_USER/WEBDAV_PASS missing' })
+      return new Response(JSON.stringify({ error: 'Server not configured: WEBDAV_URL/WEBDAV_USER/WEBDAV_PASS missing' }), { 
+        status: 500, 
+        headers: { ...corsHeaders, 'content-type': 'application/json' } 
+      })
     }
 
     if (action === 'upload') {
       await ensureWebdavDir({ baseUrl: wUrl, user: wUser, pass: wPass })
       const files = await listGithubMusic({ repoFull, token, branch, proxyFetch })
       if (!files.length) {
-        return res.status(200).json({ ok: true, total: 0, uploaded: 0, message: 'No audio files in repo' })
+        return new Response(JSON.stringify({ ok: true, total: 0, uploaded: 0, message: 'No audio files in repo' }), { 
+          status: 200, 
+          headers: { ...corsHeaders, 'content-type': 'application/json' } 
+        })
       }
 
       let existingNames = []
@@ -248,7 +263,7 @@ export default async function handler(req, res) {
       const nextCursor = (start + step) < files.length ? (start + step) : null
       const processed = slice.length
       const status = errors.length === processed ? 500 : (errors.length ? 207 : 200)
-      res.status(status).json({ 
+      return new Response(JSON.stringify({ 
         ok: errors.length === 0, 
         total: files.length, 
         processed, 
@@ -256,6 +271,9 @@ export default async function handler(req, res) {
         skipped, 
         nextCursor, 
         errors 
+      }), { 
+        status, 
+        headers: { ...corsHeaders, 'content-type': 'application/json' } 
       })
     } else if (action === 'restore') {
       // 实现WebDAV恢复功能：从WebDAV下载文件并上传到GitHub
@@ -356,7 +374,10 @@ export default async function handler(req, res) {
       }
       
       if (!webdavFiles.length) {
-        return res.status(200).json({ ok: true, total: 0, restored: 0, message: 'No audio files found in WebDAV' })
+        return new Response(JSON.stringify({ ok: true, total: 0, restored: 0, message: 'No audio files found in WebDAV' }), { 
+          status: 200, 
+          headers: { ...corsHeaders, 'content-type': 'application/json' } 
+        })
       }
       
       // 获取GitHub仓库中现有的文件列表
@@ -426,7 +447,7 @@ export default async function handler(req, res) {
       const nextCursor = (start + step) < webdavFiles.length ? (start + step) : null
       const processed = slice.length
       const status = errors.length === processed ? 500 : (errors.length ? 207 : 200)
-      res.status(status).json({ 
+      return new Response(JSON.stringify({ 
         ok: errors.length === 0, 
         total: webdavFiles.length, 
         processed, 
@@ -434,12 +455,21 @@ export default async function handler(req, res) {
         skipped, 
         nextCursor, 
         errors 
+      }), { 
+        status, 
+        headers: { ...corsHeaders, 'content-type': 'application/json' } 
       })
     } else {
-      res.status(400).json({ error: 'Unknown action' })
+      return new Response(JSON.stringify({ error: 'Unknown action' }), { 
+        status: 400, 
+        headers: { ...corsHeaders, 'content-type': 'application/json' } 
+      })
     }
   } catch (e) {
     console.error('WebDAV error:', e)
-    res.status(500).json({ error: e.message || 'webdav error' })
+    return new Response(JSON.stringify({ error: e.message || 'webdav error' }), { 
+      status: 500, 
+      headers: { ...corsHeaders, 'content-type': 'application/json' } 
+    })
   }
 }
