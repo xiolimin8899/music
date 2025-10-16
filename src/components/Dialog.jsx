@@ -120,6 +120,8 @@ export default function Dialog({
           <button 
             className="progress-dialog-cancel-btn"
             onClick={onClose}
+            id="progress-dialog-cancel-btn"
+            name="progress-dialog-cancel"
           >
             {isCompleted ? '关闭' : '取消'}
           </button>
