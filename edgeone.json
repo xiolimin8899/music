@@ -299,6 +299,14 @@
   ],
   "rewrites": [
     {
+      "source": "/sw.js",
+      "destination": "/public/sw.js"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/public/manifest.json"
+    },
+    {
       "source": "/assets/*",
       "destination": "/assets/:splat"
     },
@@ -345,14 +353,6 @@
     {
       "source": "/api/webdav/*",
       "destination": "/api/webdav"
-    },
-    {
-      "source": "/sw.js",
-      "destination": "/sw.js"
-    },
-    {
-      "source": "/manifest.json",
-      "destination": "/manifest.json"
     },
     {
       "source": "/favicon.ico",
